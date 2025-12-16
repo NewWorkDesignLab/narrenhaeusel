@@ -45,7 +45,7 @@ html, body {
     height: 100%;
     z-index: -1;
 
-    background-image: url('/narrenhaeusel/assets/bg.jpg');
+    background-image: url('/narrenhaeusel/assets/background.avif');
     background-size: cover;
     background-position: center;
 
