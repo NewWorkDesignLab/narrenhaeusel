@@ -35,32 +35,17 @@ html, body {
     height: 100%;
     margin: 0;
     overflow: hidden;
-  }
+}
 
-  .background {
+main {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1;
+}
 
-    background-image: url('/narrenhaeusel/assets/background.avif');
-    background-size: cover;
-    background-position: center;
-
-    filter: blur(12px);
-    transform: scale(1.1);
-  }
-
-  main {
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center; 
-  }
-
-  h1 {
+h1 {
     color: black;
     font-family: 'Inter', sans-serif;
     font-size: clamp(3rem, 15vw, 6rem);

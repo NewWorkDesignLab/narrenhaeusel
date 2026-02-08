@@ -5,22 +5,111 @@ import '../styles/style.css';
 <html lang="de">
   <head>
     <meta charset="utf-8" />
-	<link rel="icon" type="image/svg+xml" href="/narrenhaeusel/assets/favicon.png" />
-	<meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/narrenhaeusel/assets/favicon.png" />
+    <meta name="generator" content={Astro.generator} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <title>Narrenhäusel AR</title>
+
+    <script is:inline src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script is:inline src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.2/aframe/build/aframe-ar.min.js"></script>
   </head>
   <body>
-    <div class="background"></div>
+    <!--<div class="background"></div>-->
     <main>
-      <a-scene mindar-image="imageTargetSrc: ./ar/targets.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-        <a-entity mindar-image-target="targetIndex: 0">
-          <a-gltf-model rotation="0 0 0 " position="0 0 0.1" scale="0.5 0.5 0.5" src="./ar/model.glb"></a-gltf-model>
-        </a-entity>
+      <a-scene
+        vr-mode-ui="enabled: false"
+        arjs="sourceType: webcam; debugUIEnabled: false;"
+        renderer="logarithmicDepthBuffer: true;"
+      >
+        <a-assets>
+         <a-asset-item id="model" src="/narrenhaeusel/ar/model.glb"></a-asset-item>
+        </a-assets>
+
+<!-- Pattern Marker (Hiro) -->
+        <a-marker preset="hiro" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+
+          <!-- 3D Modell -->
+          <a-entity
+            id="model-entity"
+            gltf-model="#model"
+            position="0 0 0"
+            scale="0.01 0.01 0.01"
+            rotation="-90 0 0"
+          ></a-entity>
+        </a-marker>
+
+        <a-entity camera></a-entity>
       </a-scene>
     </main>
+
+    <script is:inline>
+      // Marker Events für Debugging
+      window.addEventListener('load', function() {
+        const marker = document.querySelector('a-marker');
+        if (marker) {
+          marker.addEventListener('markerFound', function() {
+            console.log('HIRO Marker GEFUNDEN!');
+          });
+          marker.addEventListener('markerLost', function() {
+            console.log('HIRO Marker VERLOREN');
+          });
+        }
+      });
+
+      function registerSmoothPosition() {
+        if (typeof AFRAME === 'undefined' || typeof AFRAME.registerComponent !== 'function') {
+          setTimeout(registerSmoothPosition, 100);
+          return;
+        }
+        if (AFRAME.components['smooth-position']) {
+          return; // Already registered
+        }
+        AFRAME.registerComponent('smooth-position', {
+        schema: {
+          positionFactor: { type: 'number', default: 0.05 },
+          rotationFactor: { type: 'number', default: 0.03 },
+          threshold: { type: 'number', default: 0.001 }
+        },
+        init: function() {
+          this.smoothedPosition = new THREE.Vector3();
+          this.smoothedQuaternion = new THREE.Quaternion();
+          this.lastRawPosition = new THREE.Vector3();
+          this.initialized = false;
+        },
+        tick: function() {
+          const obj = this.el.object3D;
+          const rawPos = obj.position.clone();
+          const rawQuat = obj.quaternion.clone();
+
+          if (!this.initialized && rawPos.length() > 0) {
+            this.smoothedPosition.copy(rawPos);
+            this.smoothedQuaternion.copy(rawQuat);
+            this.lastRawPosition.copy(rawPos);
+            this.initialized = true;
+            return;
+          }
+
+          if (!this.initialized) return;
+
+          const moveDist = rawPos.distanceTo(this.lastRawPosition);
+          this.lastRawPosition.copy(rawPos);
+
+          if (moveDist < this.data.threshold) {
+            obj.position.copy(this.smoothedPosition);
+            obj.quaternion.copy(this.smoothedQuaternion);
+            return;
+          }
+
+          const dynamicFactor = Math.min(this.data.positionFactor * (1 + moveDist * 10), 0.3);
+          this.smoothedPosition.lerp(rawPos, dynamicFactor);
+          this.smoothedQuaternion.slerp(rawQuat, this.data.rotationFactor);
+
+          obj.position.copy(this.smoothedPosition);
+          obj.quaternion.copy(this.smoothedQuaternion);
+        }
+      });
+      }
+      registerSmoothPosition();
+    </script>
   </body>
 </html>
