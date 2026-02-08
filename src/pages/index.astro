@@ -7,19 +7,19 @@ import '../styles/style.css';
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/narrenhaeusel/assets/favicon.png" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
     <title>Narrenhäusel AR</title>
 
-    <script is:inline src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script is:inline src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.2/aframe/build/aframe-ar.min.js"></script>
+    <script is:inline src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script is:inline src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.min.js"></script>
   </head>
   <body>
     <!--<div class="background"></div>-->
     <main>
       <a-scene
         vr-mode-ui="enabled: false"
-        arjs="sourceType: webcam; debugUIEnabled: false;"
-        renderer="logarithmicDepthBuffer: true;"
+        arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false; patternRatio: 0.75;"
+        renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true; colorManagement: true;"
       >
         <a-assets>
          <a-asset-item id="model" src="/narrenhaeusel/ar/model.glb"></a-asset-item>
@@ -28,13 +28,13 @@ import '../styles/style.css';
 <!-- Pattern Marker (Hiro) -->
         <a-marker preset="hiro" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
 
-          <!-- 3D Modell -->
+          <!-- 3D Modell - Steht aufrecht auf dem Marker, Front zeigt zur Kamera -->
           <a-entity
             id="model-entity"
             gltf-model="#model"
             position="0 0 0"
             scale="0.01 0.01 0.01"
-            rotation="-90 0 0"
+            rotation="0 0 0"
           ></a-entity>
         </a-marker>
 
@@ -43,6 +43,117 @@ import '../styles/style.css';
     </main>
 
     <script is:inline>
+      // Video auf Vollbild setzen nach AR.js-Initialisierung
+      function fixVideoFullscreen() {
+        const video = document.getElementById('arjs-video') || document.querySelector('video');
+        if (video) {
+          video.style.cssText = `
+            object-fit: cover !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            z-index: -1 !important;
+          `;
+        }
+
+        // Canvas ebenfalls anpassen
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+          canvas.style.cssText = `
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+          `;
+        }
+
+        // Kamera-Aspektverhältnis korrigieren
+        const scene = document.querySelector('a-scene');
+        if (scene && scene.camera) {
+          const aspect = window.innerWidth / window.innerHeight;
+          scene.camera.aspect = aspect;
+          scene.camera.updateProjectionMatrix();
+        }
+      }
+
+      // Resize-Handler für Kamera-Aspektverhältnis
+      window.addEventListener('resize', function() {
+        const scene = document.querySelector('a-scene');
+        if (scene && scene.camera) {
+          const aspect = window.innerWidth / window.innerHeight;
+          scene.camera.aspect = aspect;
+          scene.camera.updateProjectionMatrix();
+        }
+        fixVideoFullscreen();
+      });
+
+      // Nach Scene-Load und mit Verzögerung für AR.js
+      window.addEventListener('load', function() {
+        setTimeout(fixVideoFullscreen, 500);
+        setTimeout(fixVideoFullscreen, 1000);
+        setTimeout(fixVideoFullscreen, 2000);
+      });
+
+      // Touch-Events auf der Szene komplett blockieren
+      document.addEventListener('DOMContentLoaded', function() {
+        const scene = document.querySelector('a-scene');
+        if (scene) {
+          // Alle Touch-Events blockieren
+          ['touchstart', 'touchmove', 'touchend', 'gesturestart', 'gesturechange', 'gestureend'].forEach(function(eventType) {
+            scene.addEventListener(eventType, function(e) {
+              e.stopPropagation();
+            }, { passive: false, capture: true });
+          });
+
+          // Canvas-Element ebenfalls blockieren
+          scene.addEventListener('loaded', function() {
+            fixVideoFullscreen();
+
+            const canvas = scene.querySelector('canvas');
+            if (canvas) {
+              ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup'].forEach(function(eventType) {
+                canvas.addEventListener(eventType, function(e) {
+                  e.stopPropagation();
+                }, { passive: false, capture: true });
+              });
+            }
+          });
+        }
+      });
+
+      // Wake Lock API - verhindert Schlummermodus
+      let wakeLock = null;
+
+      async function requestWakeLock() {
+        try {
+          if ('wakeLock' in navigator) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('Wake Lock aktiviert - Display bleibt an');
+
+            wakeLock.addEventListener('release', () => {
+              console.log('Wake Lock wurde freigegeben');
+            });
+          } else {
+            console.log('Wake Lock API nicht unterstützt');
+          }
+        } catch (err) {
+          console.log('Wake Lock Fehler:', err.message);
+        }
+      }
+
+      // Wake Lock beim Laden anfordern
+      requestWakeLock();
+
+      // Wake Lock bei Sichtbarkeitsänderung erneut anfordern
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+          await requestWakeLock();
+        }
+      });
+
       // Marker Events für Debugging
       window.addEventListener('load', function() {
         const marker = document.querySelector('a-marker');

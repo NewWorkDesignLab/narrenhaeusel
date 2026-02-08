@@ -33,8 +33,13 @@
 
 html, body {
     height: 100%;
+    width: 100%;
     margin: 0;
+    padding: 0;
     overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 main {
@@ -43,6 +48,44 @@ main {
     left: 0;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+}
+
+/* Touch-Interaktion für AR-Szene deaktivieren */
+a-scene {
+    touch-action: none !important;
+    pointer-events: none !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+a-scene canvas {
+    touch-action: none !important;
+    pointer-events: none !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Video-Element (Kamera) korrekt skalieren - AR.js spezifisch - Mobile First */
+a-scene video,
+#arjs-video,
+.arjs-video {
+    object-fit: cover !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: -1 !important;
 }
 
 h1 {
