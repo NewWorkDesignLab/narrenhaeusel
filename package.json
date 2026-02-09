@@ -9,7 +9,9 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.16.6"
+    "@types/three": "^0.182.0",
+    "astro": "^5.16.6",
+    "three": "^0.182.0"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "^2.1.4"

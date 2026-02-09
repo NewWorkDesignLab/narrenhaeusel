@@ -1,0 +1,23 @@
+[
+  {
+    "id": "narrenhaeusel",
+    "name": "Narrenhäusel",
+    "modelPath": "/narrenhaeusel/models/model_nh.glb",
+    "coordinates": {
+      "latitude": "51.056959686906928 N",
+      "longitude": "13.741397319749463 E"
+    },
+    "description": "Das Narrenhäusel war ein 1755 für den Hofnarren Joseph Fröhlich errichtetes barockes Gebäude am Neustädter Brückenkopf, das 1945 zerstört und 1950 abgerissen wurde."
+  },
+  {
+    "id": "example",
+    "name": "Beispiel Gebäude 2",
+    "modelPath": "/narrenhaeusel/models/model_fk.glb",
+    "coordinates": {
+      "latitude": "51.050000000000000 N",
+      "longitude": "13.740000000000000 E"
+    },
+    "description": "Ein weiteres historisches Gebäude in Dresden. Z.B. könnte man die Frauenkirche nehmen! Das Wartzeichen Dresdens, welche nach der Zersöung im zweiten Weltkrieg 2005 wiedereröffnet wurde."
+  }
+]
+

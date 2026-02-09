@@ -1,5 +1,6 @@
 ---
 import '../styles/style.css';
+import modelsData from '../data/models.json';
 ---
 
 <html lang="de">
@@ -7,220 +8,63 @@ import '../styles/style.css';
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/narrenhaeusel/assets/favicon.png" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
-    <title>Narrenhäusel AR</title>
-
-    <script is:inline src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script is:inline src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Narrenhäusel</title>
   </head>
   <body>
-    <!--<div class="background"></div>-->
-    <main>
-      <a-scene
-        vr-mode-ui="enabled: false"
-        arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false; patternRatio: 0.75;"
-        renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true; colorManagement: true;"
-      >
-        <a-assets>
-         <a-asset-item id="model" src="/narrenhaeusel/ar/model.glb"></a-asset-item>
-        </a-assets>
+    <div class="app-container">
+      <!-- Gelber Hintergrund-Shape -->
+      <div class="background-shape"></div>
 
-<!-- Pattern Marker (Hiro) -->
-        <a-marker preset="hiro" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+      <!-- Swipe Container -->
+      <div class="swipe-container" id="swipe-container">
+        <div class="slides-wrapper" id="slides-wrapper">
+          {modelsData.map((model, index) => (
+            <div class="slide" data-index={index}>
+              <!-- 3D Model Viewer -->
+              <div class="model-viewer" id={`model-viewer-${index}`} data-model-path={model.modelPath}>
+                <canvas id={`canvas-${index}`}></canvas>
+              </div>
 
-          <!-- 3D Modell - Steht aufrecht auf dem Marker, Front zeigt zur Kamera -->
-          <a-entity
-            id="model-entity"
-            gltf-model="#model"
-            position="0 0 0"
-            scale="0.01 0.01 0.01"
-            rotation="0 0 0"
-          ></a-entity>
-        </a-marker>
+              <!-- Inhalt -->
+              <div class="content">
+                <div class="coordinates">
+                  <span>{model.coordinates.latitude}</span>
+                  <span>{model.coordinates.longitude}</span>
+                </div>
 
-        <a-entity camera></a-entity>
-      </a-scene>
-    </main>
+                <h1 class="title">{model.name}</h1>
 
-    <script is:inline>
-      // Video auf Vollbild setzen nach AR.js-Initialisierung
-      function fixVideoFullscreen() {
-        const video = document.getElementById('arjs-video') || document.querySelector('video');
-        if (video) {
-          video.style.cssText = `
-            object-fit: cover !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            z-index: -1 !important;
-          `;
-        }
+                <p class="description">{model.description}</p>
 
-        // Canvas ebenfalls anpassen
-        const canvas = document.querySelector('canvas');
-        if (canvas) {
-          canvas.style.cssText = `
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-          `;
-        }
+                <button class="content-button">
+                  <span class="ar-icon">⬡</span>
+                  In Lebensgröße ansehen
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
 
-        // Kamera-Aspektverhältnis korrigieren
-        const scene = document.querySelector('a-scene');
-        if (scene && scene.camera) {
-          const aspect = window.innerWidth / window.innerHeight;
-          scene.camera.aspect = aspect;
-          scene.camera.updateProjectionMatrix();
-        }
-      }
+        <!-- Pagination Dots -->
+        <div class="pagination" id="pagination">
+          {modelsData.map((_, index) => (
+            <span class={`dot ${index === 0 ? 'active' : ''}`} data-index={index}></span>
+          ))}
+        </div>
+      </div>
 
-      // Resize-Handler für Kamera-Aspektverhältnis
-      window.addEventListener('resize', function() {
-        const scene = document.querySelector('a-scene');
-        if (scene && scene.camera) {
-          const aspect = window.innerWidth / window.innerHeight;
-          scene.camera.aspect = aspect;
-          scene.camera.updateProjectionMatrix();
-        }
-        fixVideoFullscreen();
-      });
+      <!-- Fixed Button -->
+      <div class="button-container">
+        <button class="ar-button" id="ar-button">
+          <span class="ar-icon">⬡</span>
+          In Lebensgröße ansehen
+        </button>
+      </div>
+    </div>
 
-      // Nach Scene-Load und mit Verzögerung für AR.js
-      window.addEventListener('load', function() {
-        setTimeout(fixVideoFullscreen, 500);
-        setTimeout(fixVideoFullscreen, 1000);
-        setTimeout(fixVideoFullscreen, 2000);
-      });
-
-      // Touch-Events auf der Szene komplett blockieren
-      document.addEventListener('DOMContentLoaded', function() {
-        const scene = document.querySelector('a-scene');
-        if (scene) {
-          // Alle Touch-Events blockieren
-          ['touchstart', 'touchmove', 'touchend', 'gesturestart', 'gesturechange', 'gestureend'].forEach(function(eventType) {
-            scene.addEventListener(eventType, function(e) {
-              e.stopPropagation();
-            }, { passive: false, capture: true });
-          });
-
-          // Canvas-Element ebenfalls blockieren
-          scene.addEventListener('loaded', function() {
-            fixVideoFullscreen();
-
-            const canvas = scene.querySelector('canvas');
-            if (canvas) {
-              ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup'].forEach(function(eventType) {
-                canvas.addEventListener(eventType, function(e) {
-                  e.stopPropagation();
-                }, { passive: false, capture: true });
-              });
-            }
-          });
-        }
-      });
-
-      // Wake Lock API - verhindert Schlummermodus
-      let wakeLock = null;
-
-      async function requestWakeLock() {
-        try {
-          if ('wakeLock' in navigator) {
-            wakeLock = await navigator.wakeLock.request('screen');
-            console.log('Wake Lock aktiviert - Display bleibt an');
-
-            wakeLock.addEventListener('release', () => {
-              console.log('Wake Lock wurde freigegeben');
-            });
-          } else {
-            console.log('Wake Lock API nicht unterstützt');
-          }
-        } catch (err) {
-          console.log('Wake Lock Fehler:', err.message);
-        }
-      }
-
-      // Wake Lock beim Laden anfordern
-      requestWakeLock();
-
-      // Wake Lock bei Sichtbarkeitsänderung erneut anfordern
-      document.addEventListener('visibilitychange', async () => {
-        if (document.visibilityState === 'visible') {
-          await requestWakeLock();
-        }
-      });
-
-      // Marker Events für Debugging
-      window.addEventListener('load', function() {
-        const marker = document.querySelector('a-marker');
-        if (marker) {
-          marker.addEventListener('markerFound', function() {
-            console.log('HIRO Marker GEFUNDEN!');
-          });
-          marker.addEventListener('markerLost', function() {
-            console.log('HIRO Marker VERLOREN');
-          });
-        }
-      });
-
-      function registerSmoothPosition() {
-        if (typeof AFRAME === 'undefined' || typeof AFRAME.registerComponent !== 'function') {
-          setTimeout(registerSmoothPosition, 100);
-          return;
-        }
-        if (AFRAME.components['smooth-position']) {
-          return; // Already registered
-        }
-        AFRAME.registerComponent('smooth-position', {
-        schema: {
-          positionFactor: { type: 'number', default: 0.05 },
-          rotationFactor: { type: 'number', default: 0.03 },
-          threshold: { type: 'number', default: 0.001 }
-        },
-        init: function() {
-          this.smoothedPosition = new THREE.Vector3();
-          this.smoothedQuaternion = new THREE.Quaternion();
-          this.lastRawPosition = new THREE.Vector3();
-          this.initialized = false;
-        },
-        tick: function() {
-          const obj = this.el.object3D;
-          const rawPos = obj.position.clone();
-          const rawQuat = obj.quaternion.clone();
-
-          if (!this.initialized && rawPos.length() > 0) {
-            this.smoothedPosition.copy(rawPos);
-            this.smoothedQuaternion.copy(rawQuat);
-            this.lastRawPosition.copy(rawPos);
-            this.initialized = true;
-            return;
-          }
-
-          if (!this.initialized) return;
-
-          const moveDist = rawPos.distanceTo(this.lastRawPosition);
-          this.lastRawPosition.copy(rawPos);
-
-          if (moveDist < this.data.threshold) {
-            obj.position.copy(this.smoothedPosition);
-            obj.quaternion.copy(this.smoothedQuaternion);
-            return;
-          }
-
-          const dynamicFactor = Math.min(this.data.positionFactor * (1 + moveDist * 10), 0.3);
-          this.smoothedPosition.lerp(rawPos, dynamicFactor);
-          this.smoothedQuaternion.slerp(rawQuat, this.data.rotationFactor);
-
-          obj.position.copy(this.smoothedPosition);
-          obj.quaternion.copy(this.smoothedQuaternion);
-        }
-      });
-      }
-      registerSmoothPosition();
+    <script>
+      import '../scripts/main';
     </script>
   </body>
 </html>
