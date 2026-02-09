@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 interface ViewerInstance {
@@ -36,12 +37,12 @@ export function initModelViewer(index: number): ViewerInstance | null {
     let pivotY = -0.3;
 
     if (aspect < 0.7) {
-      camZ = 8.5;
+      camZ = 10.5;
       camY = 1.8;
       pivotY = -0.3;
       lookAtY = 0.5;
     } else if (aspect < 1) {
-      camZ = 8;
+      camZ = 9.5;
       camY = 1.7;
       pivotY = -0.3;
       lookAtY = 0.5;
@@ -120,12 +121,31 @@ export function initModelViewer(index: number): ViewerInstance | null {
   fillLight.position.set(-8, 8, -8);
   scene.add(fillLight);
 
+  // Ladeindikator erstellen
+  const loadingOverlay = document.createElement('div');
+  loadingOverlay.className = 'model-loading';
+  loadingOverlay.innerHTML = `
+    <div class="loading-spinner"></div>
+    <div class="loading-progress">0%</div>
+  `;
+  container.appendChild(loadingOverlay);
+
   const loader = new GLTFLoader();
+
+  // DRACO Loader für komprimierte Modelle
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+  dracoLoader.preload();
+  loader.setDRACOLoader(dracoLoader);
+
   let loadedModel: THREE.Group | null = null;
 
   loader.load(
     modelPath,
     (gltf) => {
+      // Ladeindikator entfernen
+      loadingOverlay.remove();
+
       loadedModel = gltf.scene;
 
       loadedModel.traverse((child) => {
@@ -179,9 +199,19 @@ export function initModelViewer(index: number): ViewerInstance | null {
       viewers[index].model = loadedModel;
       console.log('Model loaded successfully:', modelPath, 'Scale:', finalScale, 'Height:', scaledHeight);
     },
-    undefined,
+    (progress) => {
+      // Ladefortschritt anzeigen
+      if (progress.lengthComputable) {
+        const percent = Math.round((progress.loaded / progress.total) * 100);
+        const progressEl = loadingOverlay.querySelector('.loading-progress');
+        if (progressEl) {
+          progressEl.textContent = `${percent}%`;
+        }
+      }
+    },
     (error) => {
       console.error('Error loading model:', error);
+      loadingOverlay.innerHTML = '<div class="loading-error">Fehler beim Laden</div>';
     }
   );
 
@@ -329,6 +359,7 @@ export function initModelViewer(index: number): ViewerInstance | null {
 
   const onTouchEnd = () => {
     isTouchPanning = false;
+    isEdgePanning = false;
     lastTouchDistance = 0;
   };
 
