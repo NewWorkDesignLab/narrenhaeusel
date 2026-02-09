@@ -13,10 +13,8 @@ import modelsData from '../data/models.json';
   </head>
   <body>
     <div class="app-container">
-      <!-- Gelber Hintergrund-Shape -->
       <div class="background-shape"></div>
 
-      <!-- Swipe Container -->
       <div class="swipe-container" id="swipe-container">
         <div class="slides-wrapper" id="slides-wrapper">
           {modelsData.map((model, index) => (
@@ -26,7 +24,6 @@ import modelsData from '../data/models.json';
                 <canvas id={`canvas-${index}`}></canvas>
               </div>
 
-              <!-- Inhalt -->
               <div class="content">
                 <div class="coordinates">
                   <span>{model.coordinates.latitude}</span>
@@ -46,7 +43,6 @@ import modelsData from '../data/models.json';
           ))}
         </div>
 
-        <!-- Pagination Dots -->
         <div class="pagination" id="pagination">
           {modelsData.map((_, index) => (
             <span class={`dot ${index === 0 ? 'active' : ''}`} data-index={index}></span>
@@ -54,7 +50,6 @@ import modelsData from '../data/models.json';
         </div>
       </div>
 
-      <!-- Fixed Button -->
       <div class="button-container">
         <button class="ar-button" id="ar-button">
           <span class="ar-icon">⬡</span>

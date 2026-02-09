@@ -85,7 +85,7 @@ html, body {
     display: flex;
     flex-direction: column;
     padding: 0;
-    padding-top: 50px;
+    padding-top: 0;
     padding-bottom: 100px;
     overflow-y: auto;
     position: relative;
@@ -150,7 +150,7 @@ html, body {
 
 .pagination {
     position: fixed;
-    top: 20px;
+    top: 15px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -256,7 +256,7 @@ html, body {
 
     .slide {
         padding: 0;
-        padding-top: 60px;
+        padding-top: 0;
         padding-bottom: 120px;
     }
 
