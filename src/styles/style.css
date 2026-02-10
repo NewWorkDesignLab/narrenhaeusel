@@ -442,3 +442,45 @@ body:not(.is-apple):not(.is-android) .play-icon {
         margin-top: 8px;
     }
 }
+
+.pan-slider {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 40%;
+    width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.pan-slider-track {
+    width: 4px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 2px;
+    position: relative;
+}
+
+.pan-slider-thumb {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    background: #FFB200;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.1s ease;
+}
+
+.pan-slider-thumb:active {
+    transform: translate(-50%, -50%) scale(1.2);
+}
+

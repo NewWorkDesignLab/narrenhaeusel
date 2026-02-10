@@ -212,40 +212,143 @@ export function initModelViewer(index: number): ViewerInstance | null {
   );
 
   let isDragging = false;
+  let isPanning = false;
   let previousMouseX = 0;
+  let previousMouseY = 0;
   let currentScale = 1;
   let targetRotationY = 0;
   let currentRotationY = 0;
+  let targetPanY = 0;
+  let currentPanY = 0;
   let hasInteracted = false;
   let idleTime = 0;
+
+  let panSlider: HTMLDivElement | null = null;
+  let sliderThumb: HTMLDivElement | null = null;
+  let isSliderDragging = false;
+
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                   ('ontouchstart' in window);
+
+  function createPanSlider() {
+    if (panSlider || !container) return;
+
+    panSlider = document.createElement('div');
+    panSlider.className = 'pan-slider';
+    panSlider.innerHTML = `
+      <div class="pan-slider-track">
+        <div class="pan-slider-thumb"></div>
+      </div>
+    `;
+    container.appendChild(panSlider);
+    sliderThumb = panSlider.querySelector('.pan-slider-thumb');
+
+    const track = panSlider.querySelector('.pan-slider-track') as HTMLDivElement;
+
+    track.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+      isSliderDragging = true;
+      updateSliderFromTouch(e);
+    }, { passive: false });
+
+    track.addEventListener('touchmove', (e) => {
+      if (!isSliderDragging) return;
+      e.preventDefault();
+      e.stopPropagation();
+      updateSliderFromTouch(e);
+    }, { passive: false });
+
+    track.addEventListener('touchend', () => {
+      isSliderDragging = false;
+    });
+  }
+
+  function updateSliderFromTouch(e: TouchEvent) {
+    if (!panSlider) return;
+    const track = panSlider.querySelector('.pan-slider-track') as HTMLDivElement;
+    const rect = track.getBoundingClientRect();
+    const touch = e.touches[0];
+    const relativeY = (touch.clientY - rect.top) / rect.height;
+    const clampedY = Math.max(0, Math.min(1, relativeY));
+
+    const panRange = getPanRange();
+    targetPanY = panRange.max - clampedY * (panRange.max - panRange.min);
+  }
+
+  function getPanRange() {
+    const baseRange = 3.5;
+    const zoomFactor = Math.max(0, currentScale - 0.8);
+    const range = baseRange * zoomFactor;
+    return { min: -range, max: range };
+  }
+
+  function updateSliderVisibility() {
+    if (!isMobile) return;
+
+    const shouldShow = currentScale > 1.3;
+
+    if (shouldShow && !panSlider) {
+      createPanSlider();
+    }
+
+    if (panSlider) {
+      panSlider.style.opacity = shouldShow ? '1' : '0';
+      panSlider.style.pointerEvents = shouldShow ? 'auto' : 'none';
+
+      if (sliderThumb) {
+        const panRange = getPanRange();
+        const normalizedPos = panRange.max - panRange.min > 0
+          ? (panRange.max - currentPanY) / (panRange.max - panRange.min)
+          : 0.5;
+        const clampedPos = Math.max(0, Math.min(1, normalizedPos));
+        sliderThumb.style.top = `${clampedPos * 100}%`;
+      }
+    }
+  }
 
   const resetView = () => {
     targetRotationY = 0;
     currentRotationY = 0;
+    targetPanY = 0;
+    currentPanY = 0;
     currentScale = 1;
     pivot.scale.set(1, 1, 1);
     pivot.rotation.y = 0;
     pivot.position.y = initialCamPos.pivotY;
+    updateSliderVisibility();
   };
 
   const onPointerDown = (event: PointerEvent) => {
     hasInteracted = true;
-    isDragging = true;
-    previousMouseX = event.clientX;
-    canvas.style.cursor = 'grabbing';
+
+    if (event.button === 2) {
+      isPanning = true;
+      previousMouseY = event.clientY;
+      canvas.style.cursor = 'ns-resize';
+    } else {
+      isDragging = true;
+      previousMouseX = event.clientX;
+      canvas.style.cursor = 'grabbing';
+    }
   };
 
   const onPointerMove = (event: PointerEvent) => {
-    if (!isDragging) return;
-
-    const deltaX = event.clientX - previousMouseX;
-    targetRotationY += deltaX * 0.01;
-
-    previousMouseX = event.clientX;
+    if (isPanning) {
+      const deltaY = event.clientY - previousMouseY;
+      const panRange = getPanRange();
+      targetPanY -= deltaY * 0.01;
+      targetPanY = Math.max(panRange.min, Math.min(panRange.max, targetPanY));
+      previousMouseY = event.clientY;
+    } else if (isDragging) {
+      const deltaX = event.clientX - previousMouseX;
+      targetRotationY += deltaX * 0.01;
+      previousMouseX = event.clientX;
+    }
   };
 
   const onPointerUp = () => {
     isDragging = false;
+    isPanning = false;
     canvas.style.cursor = 'grab';
   };
 
@@ -260,6 +363,11 @@ export function initModelViewer(index: number): ViewerInstance | null {
     currentScale -= event.deltaY * zoomSpeed;
     currentScale = Math.max(0.5, Math.min(4.0, currentScale));
     pivot.scale.set(currentScale, currentScale, currentScale);
+
+    const panRange = getPanRange();
+    targetPanY = Math.max(panRange.min, Math.min(panRange.max, targetPanY));
+
+    updateSliderVisibility();
   };
 
   let lastTouchDistance = 0;
@@ -292,6 +400,11 @@ export function initModelViewer(index: number): ViewerInstance | null {
       currentScale = Math.max(0.5, Math.min(4.0, currentScale));
       pivot.scale.set(currentScale, currentScale, currentScale);
       lastTouchDistance = newDistance;
+
+      const panRange = getPanRange();
+      targetPanY = Math.max(panRange.min, Math.min(panRange.max, targetPanY));
+
+      updateSliderVisibility();
 
       event.preventDefault();
     } else if (event.touches.length === 1 && isSingleTouch) {
@@ -348,10 +461,15 @@ export function initModelViewer(index: number): ViewerInstance | null {
 
     const smoothFactor = 0.08;
     currentRotationY += (targetRotationY - currentRotationY) * smoothFactor;
+    currentPanY += (targetPanY - currentPanY) * smoothFactor;
 
     if (Math.abs(targetRotationY - currentRotationY) < 0.0001) currentRotationY = targetRotationY;
+    if (Math.abs(targetPanY - currentPanY) < 0.0001) currentPanY = targetPanY;
 
     pivot.rotation.y = currentRotationY;
+    pivot.position.y = initialCamPos.pivotY + currentPanY;
+
+    updateSliderVisibility();
 
     renderer.render(scene, camera);
   }
