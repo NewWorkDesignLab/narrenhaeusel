@@ -63,7 +63,7 @@ html, body {
     border-radius: 0 0 0 100%;
     z-index: 0;
     pointer-events: none;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 8px 25px rgba(255, 178, 0, 0.4);
 }
 
 .swipe-container {
@@ -87,15 +87,15 @@ html, body {
     flex-direction: column;
     padding: 0;
     padding-top: 0;
-    padding-bottom: 100px;
+    padding-bottom: 130px;
     overflow-y: auto;
     position: relative;
 }
 
 .model-viewer {
     width: 100%;
-    height: 55vh;
-    min-height: 350px;
+    height: 45vh;
+    min-height: 280px;
     position: relative;
     display: flex;
     align-items: center;
@@ -109,6 +109,7 @@ html, body {
 .model-viewer::after {
     display: none;
 }
+
 
 .model-viewer canvas {
     width: 100% !important;
@@ -154,24 +155,34 @@ html, body {
 
 .content {
     flex: 1;
-    padding: 20px 20px;
+    padding: 16px 20px 20px 20px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.content .title,
+.content .description,
+.content .coordinates {
+    cursor: text;
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 .coordinates {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    font-size: 12px;
+    font-size: 11px;
     color: #999;
     font-weight: 400;
     letter-spacing: 0.5px;
 }
 
 .title {
-    font-size: 38px;
+    font-size: 28px;
     font-weight: 700;
     color: #000;
     margin: 0;
@@ -179,22 +190,22 @@ html, body {
 }
 
 .description {
-    font-size: 17px;
-    line-height: 1.7;
+    font-size: 14px;
+    line-height: 1.6;
     color: #666;
     margin: 0;
 }
 
 .pagination {
     position: fixed;
-    top: 15px;
+    bottom: 90px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     flex-direction: row;
     gap: 8px;
-    z-index: 30;
-    background: rgba(0, 0, 0, 0.15);
+    z-index: 101;
+    background: rgba(0, 0, 0, 0.08);
     padding: 10px 16px;
     border-radius: 20px;
 }
@@ -203,7 +214,7 @@ html, body {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: #ddd;
+    background-color: #c6c6c6;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
@@ -339,15 +350,16 @@ body:not(.is-apple):not(.is-android) .play-icon {
     }
 
     .coordinates {
-        font-size: 14px;
+        font-size: 13px;
     }
 
     .title {
-        font-size: 42px;
+        font-size: 38px;
     }
 
     .description {
         font-size: 16px;
+        line-height: 1.7;
         max-width: 600px;
     }
 
@@ -361,7 +373,7 @@ body:not(.is-apple):not(.is-android) .play-icon {
     }
 
     .pagination {
-        top: 30px;
+        bottom: 110px;
     }
 }
 
@@ -416,6 +428,12 @@ body:not(.is-apple):not(.is-android) .play-icon {
 
     .button-container {
         display: none;
+    }
+
+    .pagination {
+        display: flex;
+        top: 30px;
+        bottom: auto;
     }
 
     .content-button {

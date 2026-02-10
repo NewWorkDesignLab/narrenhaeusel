@@ -10,7 +10,6 @@ import modelsData from '../data/models.json';
     <meta name="generator" content={Astro.generator} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Narrenhäusel</title>
-    <!-- Preload erstes Modell für schnelleres Laden -->
     <link rel="preload" href={modelsData[0].modelPath} as="fetch" crossorigin="anonymous" />
   </head>
   <body>
@@ -66,7 +65,6 @@ import modelsData from '../data/models.json';
     </div>
 
     <script>
-      // OS-Erkennung für Store-Icons
       const isApple = /iPhone|iPad|iPod|Mac/i.test(navigator.userAgent);
       const isAndroid = /Android/i.test(navigator.userAgent);
 
@@ -75,7 +73,6 @@ import modelsData from '../data/models.json';
       } else if (isAndroid) {
         document.body.classList.add('is-android');
       }
-      // Fallback: Windows/andere zeigen Play Store Icon (via CSS :not Selector)
 
       import '../scripts/main';
     </script>

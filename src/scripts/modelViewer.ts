@@ -121,7 +121,6 @@ export function initModelViewer(index: number): ViewerInstance | null {
   fillLight.position.set(-8, 8, -8);
   scene.add(fillLight);
 
-  // Ladeindikator erstellen
   const loadingOverlay = document.createElement('div');
   loadingOverlay.className = 'model-loading';
   loadingOverlay.innerHTML = `
@@ -130,9 +129,9 @@ export function initModelViewer(index: number): ViewerInstance | null {
   `;
   container.appendChild(loadingOverlay);
 
+
   const loader = new GLTFLoader();
 
-  // DRACO Loader für komprimierte Modelle
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
   dracoLoader.preload();
@@ -143,7 +142,6 @@ export function initModelViewer(index: number): ViewerInstance | null {
   loader.load(
     modelPath,
     (gltf) => {
-      // Ladeindikator entfernen
       loadingOverlay.remove();
 
       loadedModel = gltf.scene;
@@ -181,7 +179,6 @@ export function initModelViewer(index: number): ViewerInstance | null {
 
       const verticalOffset = scaledHeight / 2;
 
-      // Flachere Objekte (niedrigere Höhe) werden höher positioniert
       const heightRatio = size.y / maxDim;
       const verticalFactor = heightRatio < 0.7 ? 0.3 : 0.5;
 
@@ -200,7 +197,6 @@ export function initModelViewer(index: number): ViewerInstance | null {
       console.log('Model loaded successfully:', modelPath, 'Scale:', finalScale, 'Height:', scaledHeight);
     },
     (progress) => {
-      // Ladefortschritt anzeigen
       if (progress.lengthComputable) {
         const percent = Math.round((progress.loaded / progress.total) * 100);
         const progressEl = loadingOverlay.querySelector('.loading-progress');
@@ -216,69 +212,40 @@ export function initModelViewer(index: number): ViewerInstance | null {
   );
 
   let isDragging = false;
-  let isPanning = false;
   let previousMouseX = 0;
-  let previousMouseY = 0;
   let currentScale = 1;
   let targetRotationY = 0;
   let currentRotationY = 0;
-
-  let panX = 0;
-  let panY = 0;
-  let targetPanX = 0;
-  let targetPanY = 0;
+  let hasInteracted = false;
+  let idleTime = 0;
 
   const resetView = () => {
     targetRotationY = 0;
     currentRotationY = 0;
-    targetPanX = 0;
-    targetPanY = 0;
-    panX = 0;
-    panY = 0;
     currentScale = 1;
     pivot.scale.set(1, 1, 1);
     pivot.rotation.y = 0;
-    pivot.position.x = 0;
     pivot.position.y = initialCamPos.pivotY;
   };
 
   const onPointerDown = (event: PointerEvent) => {
-    if (event.button === 2 || event.button === 1) {
-      isPanning = true;
-      event.preventDefault();
-    } else {
-      isDragging = true;
-    }
+    hasInteracted = true;
+    isDragging = true;
     previousMouseX = event.clientX;
-    previousMouseY = event.clientY;
-    canvas.style.cursor = isPanning ? 'move' : 'grabbing';
+    canvas.style.cursor = 'grabbing';
   };
 
   const onPointerMove = (event: PointerEvent) => {
-    if (!isDragging && !isPanning) return;
+    if (!isDragging) return;
 
     const deltaX = event.clientX - previousMouseX;
-    const deltaY = event.clientY - previousMouseY;
-
-    if (isPanning && currentScale > 1) {
-      const panSpeed = 0.01 / currentScale;
-      targetPanX += deltaX * panSpeed;
-      targetPanY -= deltaY * panSpeed;
-
-      const maxPan = (currentScale - 1) * 1.5;
-      targetPanX = Math.max(-maxPan, Math.min(maxPan, targetPanX));
-      targetPanY = Math.max(-maxPan, Math.min(maxPan, targetPanY));
-    } else if (isDragging) {
-      targetRotationY += deltaX * 0.01;
-    }
+    targetRotationY += deltaX * 0.01;
 
     previousMouseX = event.clientX;
-    previousMouseY = event.clientY;
   };
 
   const onPointerUp = () => {
     isDragging = false;
-    isPanning = false;
     canvas.style.cursor = 'grab';
   };
 
@@ -288,79 +255,61 @@ export function initModelViewer(index: number): ViewerInstance | null {
 
   const onWheel = (event: WheelEvent) => {
     event.preventDefault();
+    hasInteracted = true;
     const zoomSpeed = 0.001;
-    const oldScale = currentScale;
     currentScale -= event.deltaY * zoomSpeed;
-    currentScale = Math.max(0.9, Math.min(4.0, currentScale));
+    currentScale = Math.max(0.5, Math.min(4.0, currentScale));
     pivot.scale.set(currentScale, currentScale, currentScale);
-
-    if (currentScale < oldScale) {
-      const maxPan = Math.max(0, (currentScale - 1) * 1.5);
-      targetPanX = Math.max(-maxPan, Math.min(maxPan, targetPanX));
-      targetPanY = Math.max(-maxPan, Math.min(maxPan, targetPanY));
-    }
-
-    if (currentScale <= 1) {
-      targetPanX = 0;
-      targetPanY = 0;
-    }
   };
 
   let lastTouchDistance = 0;
-  let lastTouchCenterX = 0;
-  let lastTouchCenterY = 0;
-  let isTouchPanning = false;
+  let isSingleTouch = false;
+  let lastSingleTouchX = 0;
 
   const onTouchStart = (event: TouchEvent) => {
+    hasInteracted = true;
     if (event.touches.length === 2) {
-      isTouchPanning = true;
+      isSingleTouch = false;
       const touch1 = event.touches[0];
       const touch2 = event.touches[1];
       lastTouchDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
-      lastTouchCenterX = (touch1.clientX + touch2.clientX) / 2;
-      lastTouchCenterY = (touch1.clientY + touch2.clientY) / 2;
       event.preventDefault();
+    } else if (event.touches.length === 1) {
+      isSingleTouch = true;
+      lastSingleTouchX = event.touches[0].clientX;
+      canvas.style.cursor = 'grabbing';
     }
   };
 
   const onTouchMove = (event: TouchEvent) => {
-    if (event.touches.length === 2 && isTouchPanning) {
+    if (event.touches.length === 2) {
       const touch1 = event.touches[0];
       const touch2 = event.touches[1];
 
       const newDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
-      const scaleDelta = (newDistance - lastTouchDistance) * 0.005;
+      const scaleDelta = (newDistance - lastTouchDistance) * 0.004;
       currentScale += scaleDelta;
-      currentScale = Math.max(0.9, Math.min(4.0, currentScale));
+      currentScale = Math.max(0.5, Math.min(4.0, currentScale));
       pivot.scale.set(currentScale, currentScale, currentScale);
       lastTouchDistance = newDistance;
 
-      if (currentScale > 1) {
-        const newCenterX = (touch1.clientX + touch2.clientX) / 2;
-        const newCenterY = (touch1.clientY + touch2.clientY) / 2;
-        const deltaX = newCenterX - lastTouchCenterX;
-        const deltaY = newCenterY - lastTouchCenterY;
+      event.preventDefault();
+    } else if (event.touches.length === 1 && isSingleTouch) {
+      const touch = event.touches[0];
+      const deltaX = touch.clientX - lastSingleTouchX;
 
-        const panSpeed = 0.01 / currentScale;
-        targetPanX += deltaX * panSpeed;
-        targetPanY -= deltaY * panSpeed;
+      targetRotationY += deltaX * 0.008;
 
-        const maxPan = (currentScale - 1) * 1.5;
-        targetPanX = Math.max(-maxPan, Math.min(maxPan, targetPanX));
-        targetPanY = Math.max(-maxPan, Math.min(maxPan, targetPanY));
-
-        lastTouchCenterX = newCenterX;
-        lastTouchCenterY = newCenterY;
-      }
+      lastSingleTouchX = touch.clientX;
 
       event.preventDefault();
     }
   };
 
   const onTouchEnd = () => {
-    isTouchPanning = false;
-    isEdgePanning = false;
+    isSingleTouch = false;
     lastTouchDistance = 0;
+    canvas.style.cursor = 'grab';
   };
 
   canvas.addEventListener('pointerdown', onPointerDown);
@@ -392,13 +341,17 @@ export function initModelViewer(index: number): ViewerInstance | null {
   function animate() {
     requestAnimationFrame(animate);
 
-    currentRotationY += (targetRotationY - currentRotationY) * 0.1;
-    panX += (targetPanX - panX) * 0.1;
-    panY += (targetPanY - panY) * 0.1;
+    if (!hasInteracted) {
+      idleTime += 0.016;
+      targetRotationY = Math.sin(idleTime * 0.2) * 0.15;
+    }
+
+    const smoothFactor = 0.08;
+    currentRotationY += (targetRotationY - currentRotationY) * smoothFactor;
+
+    if (Math.abs(targetRotationY - currentRotationY) < 0.0001) currentRotationY = targetRotationY;
 
     pivot.rotation.y = currentRotationY;
-    pivot.position.x = panX;
-    pivot.position.y = initialCamPos.pivotY + panY;
 
     renderer.render(scene, camera);
   }
@@ -447,7 +400,6 @@ export function initModelViewer(index: number): ViewerInstance | null {
       const scaledMinY = box.min.y * newScale;
       const verticalOffset = scaledHeight / 2;
 
-      // Flachere Objekte (niedrigere Höhe) werden höher positioniert
       const heightRatio = size.y / maxDim;
       const verticalFactor = heightRatio < 0.7 ? 0.3 : 0.5;
 

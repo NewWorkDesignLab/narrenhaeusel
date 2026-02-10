@@ -17,6 +17,11 @@ export function initSwipe(onSlideChange: (index: number) => void) {
     return target.closest('.model-viewer') !== null;
   }
 
+  function isTextSelected(): boolean {
+    const selection = window.getSelection();
+    return selection !== null && selection.toString().length > 0;
+  }
+
   function setSliding(isSliding: boolean) {
     if (appContainer) {
       if (isSliding) {
@@ -47,6 +52,7 @@ export function initSwipe(onSlideChange: (index: number) => void) {
   swipeContainer.addEventListener('touchstart', (e) => {
     if (isInsideModelViewer(e.target)) return;
     startX = e.touches[0].clientX;
+    currentX = startX;
     isDragging = true;
     slidesWrapper.style.transition = 'none';
   }, { passive: true });
@@ -59,8 +65,10 @@ export function initSwipe(onSlideChange: (index: number) => void) {
     slidesWrapper.style.transform = `translateX(${offset}%)`;
   }, { passive: true });
 
-  swipeContainer.addEventListener('touchend', (e) => {
-    if (!isDragging) return;
+  swipeContainer.addEventListener('touchend', () => {
+    if (!isDragging) {
+      return;
+    }
     isDragging = false;
     slidesWrapper.style.transition = 'transform 0.3s ease-out';
 
@@ -79,6 +87,7 @@ export function initSwipe(onSlideChange: (index: number) => void) {
   swipeContainer.addEventListener('mousedown', (e) => {
     if (isInsideModelViewer(e.target)) return;
     startX = e.clientX;
+    currentX = startX;
     isDragging = true;
     setSliding(true);
     slidesWrapper.style.transition = 'none';
@@ -86,6 +95,12 @@ export function initSwipe(onSlideChange: (index: number) => void) {
 
   swipeContainer.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
+    if (isTextSelected()) {
+      isDragging = false;
+      slidesWrapper.style.transition = 'transform 0.3s ease-out';
+      updateSlide(currentIndex);
+      return;
+    }
     currentX = e.clientX;
     const diff = currentX - startX;
     const offset = -currentIndex * 100 + (diff / swipeContainer.offsetWidth) * 100;
@@ -93,7 +108,10 @@ export function initSwipe(onSlideChange: (index: number) => void) {
   });
 
   swipeContainer.addEventListener('mouseup', () => {
-    if (!isDragging) return;
+    if (!isDragging || isTextSelected()) {
+      isDragging = false;
+      return;
+    }
     isDragging = false;
     slidesWrapper.style.transition = 'transform 0.3s ease-out';
 
