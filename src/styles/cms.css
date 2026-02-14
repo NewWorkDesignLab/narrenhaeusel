@@ -59,9 +59,15 @@ body {
   max-width: 500px;
 }
 
+.login-container .btn {
+  width: 100%;
+}
+
 .editor-container {
-  max-width: 1200px;
+  max-width: 1000px;
   min-height: 700px;
+  display: flex;
+  flex-direction: column;
 }
 
 h1 {
@@ -73,43 +79,80 @@ h1 {
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: 600;
   color: #333;
-  font-size: 14px;
+  font-size: 13px;
 }
 
-input[type='password'] {
+.form-hint {
+  display: block;
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+input[type='text'],
+input[type='password'],
+textarea {
   width: 100%;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  font-size: 16px;
+  border-radius: 8px;
+  font-size: 14px;
   font-family: 'Inter', sans-serif;
   transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fff;
 }
 
-input[type='password']:focus {
+input[type='text']:focus,
+input[type='password']:focus,
+textarea:focus {
   outline: none;
   border-color: #ffb200;
-  box-shadow: 0 0 0 4px rgba(255, 178, 0, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 178, 0, 0.15);
+}
+
+input[type='text']:disabled {
+  background: #f5f5f5;
+  color: #888;
+  cursor: not-allowed;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
 .btn {
-  width: 100%;
-  padding: 14px 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 10px;
-  font-size: 16px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 600;
   font-family: 'Inter', sans-serif;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 .btn-primary {
@@ -119,11 +162,7 @@ input[type='password']:focus {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 178, 0, 0.4);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(255, 178, 0, 0.4);
 }
 
 .btn-secondary {
@@ -142,11 +181,12 @@ input[type='password']:focus {
 
 .btn-danger:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 
-.btn-danger:active {
-  transform: translateY(0);
+.btn-small {
+  padding: 8px 12px;
+  font-size: 12px;
 }
 
 .error-message {
@@ -168,94 +208,151 @@ input[type='password']:focus {
 .button-row {
   display: flex;
   gap: 10px;
-  margin-top: 20px;
-}
-
-.button-row .btn {
-  flex: 1;
+  margin-top: auto;
+  padding-top: 24px;
+  justify-content: center;
 }
 
 .hidden {
   display: none !important;
 }
 
+#editor-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 .loading {
   text-align: center;
-  padding: 40px;
+  padding: 60px 40px;
   color: #666;
+  font-size: 15px;
 }
 
 .header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .header-row h1 {
   margin: 0;
+  text-align: left;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .logout-btn {
   padding: 8px 16px;
-  width: auto;
-  font-size: 14px;
+  font-size: 13px;
 }
 
-.editor-wrapper {
-  position: relative;
-  border: 2px solid #e0e0e0;
+.entries-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 280px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.entry-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
   border-radius: 10px;
-  overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  flex-shrink: 0;
 }
 
-.editor-wrapper:focus-within {
+.entry-card:hover {
   border-color: #ffb200;
-  box-shadow: 0 0 0 4px rgba(255, 178, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(255, 178, 0, 0.15);
 }
 
-.editor-wrapper.has-error {
+.entry-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.entry-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entry-id {
+  font-size: 12px;
+  color: #888;
+  font-family: 'Consolas', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entry-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.entry-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.15s;
+  border: 1px solid #e0e0e0;
+}
+
+.entry-btn svg {
+  width: 16px;
+  height: 16px;
+  color: #666;
+}
+
+.entry-btn:hover {
+  transform: scale(1.05);
+}
+
+.entry-btn.edit-btn:hover {
+  background: #fff8e6;
+  border-color: #ffb200;
+}
+
+.entry-btn.edit-btn:hover svg {
+  color: #cc8f00;
+}
+
+.entry-btn.delete-btn:hover {
+  background: #fff5f5;
   border-color: #dc3545;
 }
 
-.editor-wrapper.has-error:focus-within {
-  box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.15);
-}
-
-#json-editor-container {
-  min-height: 500px;
-  width: 100%;
-}
-
-#json-editor-container .cm-editor {
-  height: 500px;
-  max-height: 70vh;
-}
-
-#json-editor-container .cm-scroller {
-  overflow: auto;
-}
-
-.json-error-bar {
-  background: #fff5f5;
-  border-top: 1px solid #fecaca;
-  padding: 10px 16px;
-  font-size: 13px;
+.entry-btn.delete-btn:hover svg {
   color: #dc3545;
-  display: none;
-}
-
-.json-error-bar.visible {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.json-error-bar svg {
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
 }
 
 .modal-overlay {
@@ -269,26 +366,64 @@ input[type='password']:focus {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 20px;
 }
 
 .modal {
   background: white;
   border-radius: 16px;
-  padding: 30px;
-  max-width: 400px;
-  width: 90%;
+  padding: 28px;
+  max-width: 420px;
+  width: 100%;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
-.modal h2 {
-  margin: 0 0 15px 0;
+.modal-large {
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 8px;
   font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+  transition: background 0.15s;
+}
+
+.modal-close:hover {
+  background: #e0e0e0;
+}
+
+.modal h2 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
   font-weight: 700;
   color: #1a1a1a;
 }
 
 .modal p {
-  margin: 0 0 25px 0;
+  margin: 0 0 20px 0;
   font-size: 14px;
   color: #666;
   line-height: 1.5;
@@ -297,10 +432,90 @@ input[type='password']:focus {
 .modal-buttons {
   display: flex;
   gap: 10px;
+  margin-top: 24px;
 }
 
 .modal-buttons .btn {
   flex: 1;
-  padding: 12px 20px;
 }
 
+.icon-upload-area {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.icon-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  border: 2px dashed #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.icon-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.icon-preview .no-icon {
+  font-size: 11px;
+  color: #999;
+  text-align: center;
+}
+
+.icon-actions {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.icon-actions input[type='text'] {
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
+.icon-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .entry-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .header-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-row h1 {
+    text-align: center;
+  }
+
+  .header-actions {
+    justify-content: center;
+  }
+
+  .icon-upload-area {
+    flex-direction: column;
+  }
+
+  .icon-preview {
+    align-self: flex-start;
+  }
+}

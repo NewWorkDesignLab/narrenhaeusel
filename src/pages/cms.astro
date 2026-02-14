@@ -26,22 +26,31 @@ import '../styles/cms.css';
 
       <div class="editor-container hidden" id="editor-container">
         <div class="header-row">
-          <h1>Data Editor</h1>
-          <button class="btn btn-secondary logout-btn" id="logout-btn">Logout</button>
+          <h1>Content Manager</h1>
+          <div class="header-actions">
+            <button class="btn btn-secondary" id="add-entry-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add Entry
+            </button>
+            <button class="btn btn-secondary logout-btn" id="logout-btn">Logout</button>
+          </div>
         </div>
         <div class="loading" id="loading">Loading data...</div>
         <div class="hidden" id="editor-content">
-          <div class="editor-wrapper" id="editor-wrapper">
-            <div id="json-editor-container"></div>
-            <div class="json-error-bar" id="json-error-bar">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-              <span id="json-error-text"></span>
-            </div>
-          </div>
+          <div class="entries-grid" id="entries-grid"></div>
           <div class="button-row">
-            <button class="btn btn-secondary" id="reload-btn">Reload</button>
-            <button class="btn btn-danger" id="sync-btn">Sync from Server</button>
-            <button class="btn btn-primary" id="save-btn">Save</button>
+            <button class="btn btn-secondary" id="reload-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              Reload
+            </button>
+            <button class="btn btn-danger" id="sync-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+              Sync
+            </button>
+            <button class="btn btn-primary" id="save-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              Save All
+            </button>
           </div>
           <p class="error-message" id="save-error"></p>
           <p class="success-message" id="save-success">Data saved successfully!</p>
@@ -56,6 +65,101 @@ import '../styles/cms.css';
             <button class="btn btn-secondary" id="sync-cancel">Cancel</button>
             <button class="btn btn-danger" id="sync-confirm">Sync</button>
           </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay hidden" id="delete-modal">
+        <div class="modal">
+          <h2>Delete Entry?</h2>
+          <p>Are you sure you want to delete "<span id="delete-entry-name"></span>"? This action cannot be undone.</p>
+          <div class="modal-buttons">
+            <button class="btn btn-secondary" id="delete-cancel">Cancel</button>
+            <button class="btn btn-danger" id="delete-confirm">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay hidden" id="edit-modal">
+        <div class="modal modal-large">
+          <div class="modal-header">
+            <h2>Edit Entry</h2>
+            <button class="modal-close" id="edit-close">&times;</button>
+          </div>
+          <form id="edit-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-id">ID (Marker Name)</label>
+                <input type="text" id="edit-id" name="id" disabled readonly />
+                <span class="form-hint">Cannot be changed</span>
+              </div>
+              <div class="form-group">
+                <label for="edit-name">Display Name</label>
+                <input type="text" id="edit-name" name="name" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="edit-description">Description</label>
+              <textarea id="edit-description" name="description" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="edit-modelPath">Prefab Name (Unity)</label>
+              <input type="text" id="edit-modelPath" name="modelPath" placeholder="Model_Prefab" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-latitude">Latitude</label>
+                <input type="text" id="edit-latitude" name="latitude" placeholder="51.056959 N" />
+              </div>
+              <div class="form-group">
+                <label for="edit-longitude">Longitude</label>
+                <input type="text" id="edit-longitude" name="longitude" placeholder="13.741397 E" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Icon</label>
+              <div class="icon-upload-area">
+                <div class="icon-preview" id="icon-preview">
+                  <span class="no-icon">No icon</span>
+                </div>
+                <div class="icon-actions">
+                  <input type="file" id="icon-file" accept="image/*" hidden />
+                  <input type="text" id="edit-iconUrl" name="iconUrl" placeholder="Icon URL or upload" />
+                  <div class="icon-buttons">
+                    <button type="button" class="btn btn-secondary btn-small" id="icon-upload-btn">Upload</button>
+                    <button type="button" class="btn btn-danger btn-small" id="icon-delete-btn">Remove</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-buttons">
+              <button type="button" class="btn btn-secondary" id="edit-cancel">Cancel</button>
+              <button type="submit" class="btn btn-primary">Apply Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="modal-overlay hidden" id="add-modal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2>Add New Entry</h2>
+            <button class="modal-close" id="add-close">&times;</button>
+          </div>
+          <form id="add-form">
+            <div class="form-group">
+              <label for="add-id">ID (Marker Name)</label>
+              <input type="text" id="add-id" name="id" required pattern="[a-z0-9_-]+" placeholder="unique_marker_id" />
+              <span class="form-hint">Lowercase letters, numbers, dashes, underscores only</span>
+            </div>
+            <div class="form-group">
+              <label for="add-name">Display Name</label>
+              <input type="text" id="add-name" name="name" required placeholder="Display Name" />
+            </div>
+            <div class="modal-buttons">
+              <button type="button" class="btn btn-secondary" id="add-cancel">Cancel</button>
+              <button type="submit" class="btn btn-primary">Create Entry</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
