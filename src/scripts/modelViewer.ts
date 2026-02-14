@@ -124,7 +124,9 @@ export function initModelViewer(index: number): ViewerInstance | null {
   const loadingOverlay = document.createElement('div');
   loadingOverlay.className = 'model-loading';
   loadingOverlay.innerHTML = `
-    <div class="loading-spinner"></div>
+    <div class="loading-bar">
+      <div class="loading-bar-fill"></div>
+    </div>
     <div class="loading-progress">0%</div>
   `;
   container.appendChild(loadingOverlay);
@@ -194,14 +196,19 @@ export function initModelViewer(index: number): ViewerInstance | null {
       shadowPlane.position.y = modelBottomY - 0.15;
 
       viewers[index].model = loadedModel;
-      console.log('Model loaded successfully:', modelPath, 'Scale:', finalScale, 'Height:', scaledHeight);
     },
     (progress) => {
       if (progress.lengthComputable) {
-        const percent = Math.round((progress.loaded / progress.total) * 100);
+        const rawPercent = progress.loaded / progress.total;
+        const easedPercent = Math.pow(rawPercent, 0.6);
+        const displayPercent = Math.min(100, Math.round(easedPercent * 100));
         const progressEl = loadingOverlay.querySelector('.loading-progress');
+        const fillEl = loadingOverlay.querySelector('.loading-bar-fill') as HTMLElement;
         if (progressEl) {
-          progressEl.textContent = `${percent}%`;
+          progressEl.textContent = `${displayPercent}%`;
+        }
+        if (fillEl) {
+          fillEl.style.width = `${displayPercent}%`;
         }
       }
     },
@@ -456,7 +463,7 @@ export function initModelViewer(index: number): ViewerInstance | null {
 
     if (!hasInteracted) {
       idleTime += 0.016;
-      targetRotationY = Math.sin(idleTime * 0.2) * 0.15;
+      targetRotationY = Math.sin(idleTime * 0.08) * 0.1;
     }
 
     const smoothFactor = 0.08;

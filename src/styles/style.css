@@ -42,6 +42,8 @@ html, body {
     overflow: hidden;
     font-family: 'Inter', sans-serif;
     background: linear-gradient(0deg, #ffffff 0%, #e8e8e8 100%);
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .app-container {
@@ -125,26 +127,33 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     z-index: 10;
 }
 
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid #eee;
-    border-top-color: #FFB200;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+.loading-bar {
+    width: 120px;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.loading-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0%;
+    height: 100%;
+    background: #FFB200;
+    border-radius: 3px;
+    transition: width 0.15s ease-out;
 }
 
 .loading-progress {
-    font-size: 14px;
-    color: #666;
+    font-size: 12px;
+    color: #333;
     font-weight: 600;
 }
 
@@ -159,16 +168,6 @@ html, body {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    user-select: text;
-    -webkit-user-select: text;
-}
-
-.content .title,
-.content .description,
-.content .coordinates {
-    cursor: text;
-    user-select: text;
-    -webkit-user-select: text;
 }
 
 .coordinates {
