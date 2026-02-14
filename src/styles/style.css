@@ -68,6 +68,36 @@ html, body {
     box-shadow: 0 8px 25px rgba(255, 178, 0, 0.4);
 }
 
+.cms-button {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.15s, box-shadow 0.15s;
+    text-decoration: none;
+}
+
+.cms-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cms-button svg {
+    width: 20px;
+    height: 20px;
+    fill: #666;
+}
+
 .swipe-container {
     flex: 1;
     position: relative;

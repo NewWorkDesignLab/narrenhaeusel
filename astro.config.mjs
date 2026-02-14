@@ -5,5 +5,16 @@ export default defineConfig({
   base: '/narrenhaeusel',
   server: {
     host: true
+  },
+  vite: {
+    server: {
+      proxy: {
+        '/proxy': {
+          target: 'https://00224466.xyz',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/proxy/, '')
+        }
+      }
+    }
   }
 });

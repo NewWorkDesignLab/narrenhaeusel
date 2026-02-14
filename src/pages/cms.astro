@@ -1,0 +1,67 @@
+---
+import '../styles/cms.css';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/narrenhaeusel/assets/favicon.png" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Narrenhäusel - CMS</title>
+  </head>
+  <body>
+    <div class="cms-container">
+      <div class="login-container" id="login-container">
+        <h1>CMS Login</h1>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter password" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+          <p class="error-message" id="login-error">Invalid password</p>
+        </form>
+      </div>
+
+      <div class="editor-container hidden" id="editor-container">
+        <div class="header-row">
+          <h1>Data Editor</h1>
+          <button class="btn btn-secondary logout-btn" id="logout-btn">Logout</button>
+        </div>
+        <div class="loading" id="loading">Loading data...</div>
+        <div class="hidden" id="editor-content">
+          <div class="editor-wrapper" id="editor-wrapper">
+            <div id="json-editor-container"></div>
+            <div class="json-error-bar" id="json-error-bar">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              <span id="json-error-text"></span>
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="btn btn-secondary" id="reload-btn">Reload</button>
+            <button class="btn btn-danger" id="sync-btn">Sync from Server</button>
+            <button class="btn btn-primary" id="save-btn">Save</button>
+          </div>
+          <p class="error-message" id="save-error"></p>
+          <p class="success-message" id="save-success">Data saved successfully!</p>
+        </div>
+      </div>
+
+      <div class="modal-overlay hidden" id="sync-modal">
+        <div class="modal">
+          <h2>Sync from Server?</h2>
+          <p>All local changes will be overwritten and replaced with the current server data.</p>
+          <div class="modal-buttons">
+            <button class="btn btn-secondary" id="sync-cancel">Cancel</button>
+            <button class="btn btn-danger" id="sync-confirm">Sync</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      import '../scripts/cms';
+    </script>
+  </body>
+</html>
