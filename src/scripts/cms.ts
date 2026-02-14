@@ -38,7 +38,6 @@ const saveBtn = document.getElementById('save-btn') as HTMLButtonElement;
 const reloadBtn = document.getElementById('reload-btn') as HTMLButtonElement;
 const syncBtn = document.getElementById('sync-btn') as HTMLButtonElement;
 const logoutBtn = document.getElementById('logout-btn') as HTMLButtonElement;
-const addEntryBtn = document.getElementById('add-entry-btn') as HTMLButtonElement;
 const saveError = document.getElementById('save-error') as HTMLElement;
 const saveSuccess = document.getElementById('save-success') as HTMLElement;
 
@@ -66,13 +65,6 @@ const iconPreview = document.getElementById('icon-preview') as HTMLElement;
 const iconFileInput = document.getElementById('icon-file') as HTMLInputElement;
 const iconUploadBtn = document.getElementById('icon-upload-btn') as HTMLButtonElement;
 const iconDeleteBtn = document.getElementById('icon-delete-btn') as HTMLButtonElement;
-
-const addModal = document.getElementById('add-modal') as HTMLElement;
-const addForm = document.getElementById('add-form') as HTMLFormElement;
-const addClose = document.getElementById('add-close') as HTMLButtonElement;
-const addCancel = document.getElementById('add-cancel') as HTMLButtonElement;
-const addIdInput = document.getElementById('add-id') as HTMLInputElement;
-const addNameInput = document.getElementById('add-name') as HTMLInputElement;
 
 let apiKey = '';
 let entries: ModelEntry[] = [];
@@ -261,37 +253,6 @@ function confirmDelete(): void {
   closeDeleteModal();
 }
 
-function openAddModal(): void {
-  addIdInput.value = '';
-  addNameInput.value = '';
-  addModal.classList.remove('hidden');
-}
-
-function closeAddModal(): void {
-  addModal.classList.add('hidden');
-  addForm.reset();
-}
-
-function addNewEntry(): void {
-  const id = addIdInput.value.trim().toLowerCase();
-  const name = addNameInput.value.trim();
-  if (!id || !name) return;
-  if (entries.some((e) => getEntryId(e) === id)) {
-    alert('An entry with this ID already exists.');
-    return;
-  }
-  const newEntry: ModelEntry = {
-    associatedMarker: id,
-    contentName: name,
-    prefabName: '',
-    coordinates: '',
-    description: '',
-  };
-  entries.push(newEntry);
-  renderEntries();
-  closeAddModal();
-  openEditModal(id);
-}
 
 async function syncFromServer(): Promise<void> {
   saveError.style.display = 'none';
@@ -393,16 +354,6 @@ syncModal.addEventListener('click', (e) => {
   if (e.target === syncModal) syncModal.classList.add('hidden');
 });
 
-addEntryBtn.addEventListener('click', openAddModal);
-addClose.addEventListener('click', closeAddModal);
-addCancel.addEventListener('click', closeAddModal);
-addForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  addNewEntry();
-});
-addModal.addEventListener('click', (e) => {
-  if (e.target === addModal) closeAddModal();
-});
 
 editClose.addEventListener('click', closeEditModal);
 editCancel.addEventListener('click', closeEditModal);

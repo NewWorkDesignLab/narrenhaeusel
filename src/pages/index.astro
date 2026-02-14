@@ -69,11 +69,28 @@ import modelsData from '../data/models.json';
     <script>
       const isApple = /iPhone|iPad|iPod|Mac/i.test(navigator.userAgent);
       const isAndroid = /Android/i.test(navigator.userAgent);
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
       if (isApple) {
         document.body.classList.add('is-apple');
       } else if (isAndroid) {
         document.body.classList.add('is-android');
+      }
+
+      const arButton = document.getElementById('ar-button') as HTMLButtonElement;
+      const contentButtons = document.querySelectorAll('.content-button') as NodeListOf<HTMLButtonElement>;
+
+      if (!isMobile) {
+        if (arButton) {
+          arButton.disabled = true;
+          arButton.classList.add('disabled');
+          arButton.title = 'Nur auf Mobilgeräten verfügbar';
+        }
+        contentButtons.forEach(btn => {
+          btn.disabled = true;
+          btn.classList.add('disabled');
+          btn.title = 'Nur auf Mobilgeräten verfügbar';
+        });
       }
 
       import '../scripts/main';

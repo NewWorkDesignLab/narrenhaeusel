@@ -292,6 +292,20 @@ html, body {
     transform: translateY(0);
 }
 
+.ar-button:disabled,
+.ar-button.disabled {
+    background-color: #ccc;
+    color: #888;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.ar-button:disabled:hover,
+.ar-button.disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 .ar-icon {
     font-size: 20px;
 }
@@ -351,6 +365,20 @@ body:not(.is-apple):not(.is-android) .play-icon {
 
 .content-button:active {
     transform: translateY(0);
+}
+
+.content-button:disabled,
+.content-button.disabled {
+    background-color: #ccc;
+    color: #888;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.content-button:disabled:hover,
+.content-button.disabled:hover {
+    transform: none;
+    box-shadow: none;
 }
 
 
