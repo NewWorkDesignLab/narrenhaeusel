@@ -7,7 +7,6 @@ interface MarkerEntry {
   coordinates: string;
   offset: { x: number; y: number; z: number };
   prefabName: string;
-  iconUrl: string;
 }
 
 interface DataFormat {
@@ -59,11 +58,6 @@ const editDescriptionInput = document.getElementById('edit-description') as HTML
 const editModelPathInput = document.getElementById('edit-modelPath') as HTMLInputElement;
 const editLatitudeInput = document.getElementById('edit-latitude') as HTMLInputElement;
 const editLongitudeInput = document.getElementById('edit-longitude') as HTMLInputElement;
-const editIconUrlInput = document.getElementById('edit-iconUrl') as HTMLInputElement;
-const iconPreview = document.getElementById('icon-preview') as HTMLElement;
-const iconFileInput = document.getElementById('icon-file') as HTMLInputElement;
-const iconUploadBtn = document.getElementById('icon-upload-btn') as HTMLButtonElement;
-const iconDeleteBtn = document.getElementById('icon-delete-btn') as HTMLButtonElement;
 
 const editMarkerNameInput = document.getElementById('edit-markerName') as HTMLInputElement;
 const editMarkerUrlInput = document.getElementById('edit-markerUrl') as HTMLInputElement;
@@ -188,7 +182,6 @@ function createNewEntry(): void {
     coordinates: '0,0',
     offset: { x: 0, y: 0, z: 0 },
     prefabName: '',
-    iconUrl: '',
   };
 
   entries.push(newEntry);
@@ -219,8 +212,6 @@ function openEditModal(id: string): void {
   editOffsetYInput.value = String(offset.y);
   editOffsetZInput.value = String(offset.z);
 
-  editIconUrlInput.value = entry.iconUrl || '';
-  updateIconPreview(entry.iconUrl || '');
 
   editMarkerUrlInput.value = entry.markerUrl || '';
   updateMarkerPreview(entry.markerUrl || '');
@@ -232,38 +223,9 @@ function closeEditModal(): void {
   editModal.classList.add('hidden');
   currentEditId = null;
   editForm.reset();
-  updateIconPreview('');
   updateMarkerPreview('');
 }
 
-function updateIconPreview(url: string): void {
-  if (url) {
-    let resolvedUrl = url;
-
-    if (!url.startsWith('data:')) {
-      if (url.startsWith('/icons/')) {
-        resolvedUrl = `https://00224466.xyz/narrenhaeusel${url}`;
-      }
-      else if (url.startsWith('/narrenhaeusel/icons/')) {
-        resolvedUrl = `https://00224466.xyz${url}`;
-      }
-    }
-
-    const img = document.createElement('img');
-    img.alt = 'Icon preview';
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      iconPreview.innerHTML = '';
-      iconPreview.appendChild(img);
-    };
-    img.onerror = () => {
-      iconPreview.innerHTML = '<span class="no-icon">Load failed</span>';
-    };
-    img.src = resolvedUrl;
-  } else {
-    iconPreview.innerHTML = '<span class="no-icon">No icon</span>';
-  }
-}
 
 function updateMarkerPreview(url: string): void {
   if (url) {
@@ -345,7 +307,6 @@ function applyEditChanges(): void {
     y: parseFloat(editOffsetYInput.value) || 0,
     z: parseFloat(editOffsetZInput.value) || 0,
   };
-  original.iconUrl = editIconUrlInput.value || '';
 
   entries[entryIndex] = original;
   currentEditId = original.markerName;
@@ -438,7 +399,6 @@ async function saveData(): Promise<void> {
         z: typeof entry.offset?.z === 'number' ? entry.offset.z : (parseFloat(String(entry.offset?.z)) || 0),
       },
       prefabName: entry.prefabName || '',
-      iconUrl: entry.iconUrl || '',
     };
     normalizedEntries.push(normalizedEntry);
   }
@@ -468,15 +428,6 @@ async function saveData(): Promise<void> {
   }
 }
 
-function handleIconUpload(file: File): void {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string;
-    editIconUrlInput.value = dataUrl;
-    updateIconPreview(dataUrl);
-  };
-  reader.readAsDataURL(file);
-}
 
 async function handleMarkerUpload(file: File): Promise<void> {
   const reader = new FileReader();
@@ -557,21 +508,6 @@ editModal.addEventListener('click', (e) => {
   if (e.target === editModal) closeEditModal();
 });
 
-editIconUrlInput.addEventListener('input', () => {
-  updateIconPreview(editIconUrlInput.value);
-});
-
-iconUploadBtn.addEventListener('click', () => iconFileInput.click());
-iconFileInput.addEventListener('change', () => {
-  if (iconFileInput.files && iconFileInput.files[0]) {
-    handleIconUpload(iconFileInput.files[0]);
-  }
-});
-
-iconDeleteBtn.addEventListener('click', () => {
-  editIconUrlInput.value = '';
-  updateIconPreview('');
-});
 
 editMarkerUrlInput.addEventListener('input', () => {
   updateMarkerPreview(editMarkerUrlInput.value);
