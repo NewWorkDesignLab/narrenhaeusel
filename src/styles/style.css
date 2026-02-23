@@ -300,6 +300,20 @@ html, body {
     box-shadow: none;
 }
 
+@media (hover: hover) and (pointer: fine) {
+    .ar-button {
+        background-color: #ccc;
+        color: #888;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    .ar-button:hover {
+        transform: none;
+        box-shadow: none;
+    }
+}
+
 .ar-button:disabled:hover,
 .ar-button.disabled:hover {
     transform: none;

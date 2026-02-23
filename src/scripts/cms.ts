@@ -1,25 +1,25 @@
-interface ModelEntry {
-  id?: string;
-  name?: string;
-  associatedMarker?: string;
-  contentName?: string;
-  modelPath?: string;
-  prefabName?: string;
-  coordinates?: {
-    latitude: string;
-    longitude: string;
-  } | string;
+interface MarkerEntry {
+  markerName: string;
+  markerUrl: string;
+  markerWidth: number;
+  contentName: string;
   description: string;
-  iconUrl?: string;
-  offset?: { x: number; y: number; z: number };
+  coordinates: string;
+  offset: { x: number; y: number; z: number };
+  prefabName: string;
+  iconUrl: string;
 }
 
-function getEntryId(entry: ModelEntry): string {
-  return entry.id || entry.associatedMarker || '';
+interface DataFormat {
+  items: MarkerEntry[];
 }
 
-function getEntryName(entry: ModelEntry): string {
-  return entry.name || entry.contentName || '';
+function getEntryId(entry: MarkerEntry): string {
+  return entry.markerName || '';
+}
+
+function getEntryName(entry: MarkerEntry): string {
+  return entry.contentName || '';
 }
 
 const IS_DEV = import.meta.env.DEV;
@@ -54,7 +54,6 @@ const editModal = document.getElementById('edit-modal') as HTMLElement;
 const editForm = document.getElementById('edit-form') as HTMLFormElement;
 const editClose = document.getElementById('edit-close') as HTMLButtonElement;
 const editCancel = document.getElementById('edit-cancel') as HTMLButtonElement;
-const editIdInput = document.getElementById('edit-id') as HTMLInputElement;
 const editNameInput = document.getElementById('edit-name') as HTMLInputElement;
 const editDescriptionInput = document.getElementById('edit-description') as HTMLTextAreaElement;
 const editModelPathInput = document.getElementById('edit-modelPath') as HTMLInputElement;
@@ -66,8 +65,20 @@ const iconFileInput = document.getElementById('icon-file') as HTMLInputElement;
 const iconUploadBtn = document.getElementById('icon-upload-btn') as HTMLButtonElement;
 const iconDeleteBtn = document.getElementById('icon-delete-btn') as HTMLButtonElement;
 
+const editMarkerNameInput = document.getElementById('edit-markerName') as HTMLInputElement;
+const editMarkerUrlInput = document.getElementById('edit-markerUrl') as HTMLInputElement;
+const editMarkerWidthInput = document.getElementById('edit-markerWidth') as HTMLInputElement;
+const editOffsetXInput = document.getElementById('edit-offsetX') as HTMLInputElement;
+const editOffsetYInput = document.getElementById('edit-offsetY') as HTMLInputElement;
+const editOffsetZInput = document.getElementById('edit-offsetZ') as HTMLInputElement;
+
+const markerPreview = document.getElementById('marker-preview') as HTMLElement;
+const markerFileInput = document.getElementById('marker-file') as HTMLInputElement;
+const markerUploadBtn = document.getElementById('marker-upload-btn') as HTMLButtonElement;
+const markerDeleteBtn = document.getElementById('marker-delete-btn') as HTMLButtonElement;
+
 let apiKey = '';
-let entries: ModelEntry[] = [];
+let entries: MarkerEntry[] = [];
 let currentEditId: string | null = null;
 let deleteTargetId: string | null = null;
 
@@ -84,18 +95,15 @@ async function verifyPassword(password: string): Promise<boolean> {
     });
     if (response.ok) {
       const data = await response.json();
-      console.log('Login response:', data);
       if (data.apiKey) {
         apiKey = data.apiKey;
         return true;
       } else {
-        console.error('Login response missing apiKey field');
         return false;
       }
     }
     return false;
   } catch (error) {
-    console.error('Verification error:', error);
     return false;
   }
 }
@@ -104,37 +112,43 @@ async function loadData(): Promise<void> {
   loading.classList.remove('hidden');
   editorContent.classList.add('hidden');
   try {
-    console.log('Loading data with apiKey:', apiKey ? 'present' : 'missing');
     const response = await fetch(`${API_BASE}/narrenhaeusel/api/get-data`, {
       headers: { 'X-API-Key': apiKey },
     });
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Load response error:', response.status, errorText);
       throw new Error(`Failed to load data: ${response.status}`);
     }
-    const data = await response.json();
-    console.log('Loaded data type:', typeof data, Array.isArray(data) ? 'array' : 'object');
-    if (Array.isArray(data)) {
-      entries = data;
-    } else if (data && Array.isArray(data.items)) {
+    const data: DataFormat = await response.json();
+    if (data && Array.isArray(data.items)) {
       entries = data.items;
     } else {
       entries = [];
-      console.warn('Unexpected data format:', data);
     }
-    console.log('Entries count:', entries.length);
     loading.classList.add('hidden');
     editorContent.classList.remove('hidden');
     renderEntries();
   } catch (error) {
     loading.textContent = 'Error loading data: ' + (error as Error).message;
-    console.error('Load error:', error);
   }
 }
 
 function renderEntries(): void {
   entriesGrid.innerHTML = '';
+
+  const addCard = document.createElement('div');
+  addCard.className = 'entry-card add-new-card';
+  addCard.innerHTML = `
+    <div class="add-new-content">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      <span>Add New Entry</span>
+    </div>
+  `;
+  addCard.addEventListener('click', createNewEntry);
+  entriesGrid.appendChild(addCard);
+
   entries.forEach((entry) => {
     const entryId = getEntryId(entry);
     const entryName = getEntryName(entry);
@@ -163,28 +177,54 @@ function renderEntries(): void {
   });
 }
 
+function createNewEntry(): void {
+  const newId = `marker_${Date.now()}`;
+  const newEntry: MarkerEntry = {
+    markerName: newId,
+    markerUrl: '',
+    markerWidth: 0.2,
+    contentName: 'New Entry',
+    description: '',
+    coordinates: '0,0',
+    offset: { x: 0, y: 0, z: 0 },
+    prefabName: '',
+    iconUrl: '',
+  };
+
+  entries.push(newEntry);
+  renderEntries();
+
+  openEditModal(newId);
+}
+
 function openEditModal(id: string): void {
   const entry = entries.find((e) => getEntryId(e) === id);
   if (!entry) return;
   currentEditId = id;
-  editIdInput.value = getEntryId(entry);
-  editNameInput.value = getEntryName(entry);
+
+  editMarkerNameInput.value = entry.markerName || '';
+  editMarkerUrlInput.value = entry.markerUrl || '';
+  editMarkerWidthInput.value = String(entry.markerWidth || 0.2);
+  editNameInput.value = entry.contentName || '';
   editDescriptionInput.value = entry.description || '';
-  editModelPathInput.value = entry.modelPath || entry.prefabName || '';
-  const coords = entry.coordinates;
-  if (typeof coords === 'string') {
-    const parts = coords.split(',').map(s => s.trim());
-    editLatitudeInput.value = parts[0] || '';
-    editLongitudeInput.value = parts[1] || '';
-  } else if (coords) {
-    editLatitudeInput.value = coords.latitude || '';
-    editLongitudeInput.value = coords.longitude || '';
-  } else {
-    editLatitudeInput.value = '';
-    editLongitudeInput.value = '';
-  }
+  editModelPathInput.value = entry.prefabName || '';
+
+  const coords = entry.coordinates || '';
+  const parts = coords.split(',').map(s => s.trim());
+  editLatitudeInput.value = parts[0] || '';
+  editLongitudeInput.value = parts[1] || '';
+
+  const offset = entry.offset || { x: 0, y: 0, z: 0 };
+  editOffsetXInput.value = String(offset.x);
+  editOffsetYInput.value = String(offset.y);
+  editOffsetZInput.value = String(offset.z);
+
   editIconUrlInput.value = entry.iconUrl || '';
   updateIconPreview(entry.iconUrl || '');
+
+  editMarkerUrlInput.value = entry.markerUrl || '';
+  updateMarkerPreview(entry.markerUrl || '');
+
   editModal.classList.remove('hidden');
 }
 
@@ -193,42 +233,123 @@ function closeEditModal(): void {
   currentEditId = null;
   editForm.reset();
   updateIconPreview('');
+  updateMarkerPreview('');
 }
 
 function updateIconPreview(url: string): void {
   if (url) {
-    iconPreview.innerHTML = `<img src="${url}" alt="Icon preview" />`;
+    let resolvedUrl = url;
+
+    if (!url.startsWith('data:')) {
+      if (url.startsWith('/icons/')) {
+        resolvedUrl = `https://00224466.xyz/narrenhaeusel${url}`;
+      }
+      else if (url.startsWith('/narrenhaeusel/icons/')) {
+        resolvedUrl = `https://00224466.xyz${url}`;
+      }
+    }
+
+    const img = document.createElement('img');
+    img.alt = 'Icon preview';
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      iconPreview.innerHTML = '';
+      iconPreview.appendChild(img);
+    };
+    img.onerror = () => {
+      iconPreview.innerHTML = '<span class="no-icon">Load failed</span>';
+    };
+    img.src = resolvedUrl;
   } else {
     iconPreview.innerHTML = '<span class="no-icon">No icon</span>';
   }
 }
 
-function applyEditChanges(): void {
-  if (!currentEditId) return;
-  const entryIndex = entries.findIndex((e) => getEntryId(e) === currentEditId);
-  if (entryIndex === -1) return;
-  const original = entries[entryIndex];
-  if (original.contentName !== undefined) {
-    original.contentName = editNameInput.value;
-  } else {
-    original.name = editNameInput.value;
-  }
-  original.description = editDescriptionInput.value;
-  if (original.prefabName !== undefined) {
-    original.prefabName = editModelPathInput.value;
-  } else {
-    original.modelPath = editModelPathInput.value;
-  }
-  if (typeof original.coordinates === 'string') {
-    original.coordinates = `${editLatitudeInput.value}, ${editLongitudeInput.value}`;
-  } else {
-    original.coordinates = {
-      latitude: editLatitudeInput.value,
-      longitude: editLongitudeInput.value,
+function updateMarkerPreview(url: string): void {
+  if (url) {
+    let resolvedUrl = url;
+
+    if (!url.startsWith('data:')) {
+      if (url.startsWith('/markers/')) {
+        resolvedUrl = `https://00224466.xyz/narrenhaeusel${url}`;
+      }
+      else if (url.startsWith('/narrenhaeusel/markers/')) {
+        resolvedUrl = `https://00224466.xyz${url}`;
+      }
+    }
+
+    const img = document.createElement('img');
+    img.alt = 'Marker preview';
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      markerPreview.innerHTML = '';
+      markerPreview.appendChild(img);
     };
+    img.onerror = () => {
+      markerPreview.innerHTML = '<span class="no-icon">Load failed</span>';
+    };
+    img.src = resolvedUrl;
+  } else {
+    markerPreview.innerHTML = '<span class="no-icon">No marker</span>';
   }
-  original.iconUrl = editIconUrlInput.value || undefined;
+}
+
+function applyEditChanges(): void {
+  if (!currentEditId) {
+    return;
+  }
+
+  let entryIndex = entries.findIndex((e) => getEntryId(e) === currentEditId);
+
+  if (entryIndex === -1) {
+    entryIndex = entries.findIndex((e) =>
+      e.markerName === currentEditId || e.contentName === currentEditId
+    );
+    if (entryIndex === -1) {
+      alert('Entry not found. Please reload and try again.');
+      return;
+    }
+  }
+
+  const markerName = editMarkerNameInput.value.trim();
+  const contentName = editNameInput.value.trim();
+  const latitude = editLatitudeInput.value.trim();
+  const longitude = editLongitudeInput.value.trim();
+
+  if (!markerName) {
+    alert('Marker Name is required');
+    editMarkerNameInput.focus();
+    return;
+  }
+  if (!contentName) {
+    alert('Content Name is required');
+    editNameInput.focus();
+    return;
+  }
+  if (!latitude || !longitude) {
+    alert('Latitude and Longitude are required');
+    return;
+  }
+
+  const original = entries[entryIndex];
+
+  original.markerName = markerName;
+  original.markerUrl = editMarkerUrlInput.value || '';
+  original.markerWidth = parseFloat(editMarkerWidthInput.value) || 0.2;
+  original.contentName = contentName;
+  original.description = editDescriptionInput.value || '';
+  original.prefabName = editModelPathInput.value || '';
+  original.coordinates = `${latitude},${longitude}`;
+  original.offset = {
+    x: parseFloat(editOffsetXInput.value) || 0,
+    y: parseFloat(editOffsetYInput.value) || 0,
+    z: parseFloat(editOffsetZInput.value) || 0,
+  };
+  original.iconUrl = editIconUrlInput.value || '';
+
   entries[entryIndex] = original;
+  currentEditId = original.markerName;
+
   renderEntries();
   closeEditModal();
 }
@@ -263,14 +384,11 @@ async function syncFromServer(): Promise<void> {
       headers: { 'X-API-Key': apiKey },
     });
     if (!response.ok) throw new Error('Failed to sync data');
-    const data = await response.json();
-    if (Array.isArray(data)) {
-      entries = data;
-    } else if (data && Array.isArray(data.items)) {
+    const data: DataFormat = await response.json();
+    if (data && Array.isArray(data.items)) {
       entries = data.items;
     } else {
       entries = [];
-      console.warn('Unexpected data format:', data);
     }
     renderEntries();
     saveSuccess.textContent = 'Data synced from server!';
@@ -288,19 +406,58 @@ async function syncFromServer(): Promise<void> {
 async function saveData(): Promise<void> {
   saveError.style.display = 'none';
   saveSuccess.style.display = 'none';
+
+  const normalizedEntries: MarkerEntry[] = [];
+  for (const entry of entries) {
+    if (!entry.markerName) {
+      saveError.textContent = `Validation error: Entry is missing markerName`;
+      saveError.style.display = 'block';
+      return;
+    }
+    if (!entry.contentName) {
+      saveError.textContent = `Validation error: Entry "${entry.markerName}" is missing contentName`;
+      saveError.style.display = 'block';
+      return;
+    }
+    if (!entry.coordinates || typeof entry.coordinates !== 'string') {
+      saveError.textContent = `Validation error: Entry "${entry.markerName}" is missing coordinates`;
+      saveError.style.display = 'block';
+      return;
+    }
+
+    const normalizedEntry: MarkerEntry = {
+      markerName: entry.markerName,
+      markerUrl: entry.markerUrl || '',
+      markerWidth: typeof entry.markerWidth === 'number' ? entry.markerWidth : (parseFloat(String(entry.markerWidth)) || 0.2),
+      contentName: entry.contentName,
+      description: entry.description || '',
+      coordinates: entry.coordinates,
+      offset: {
+        x: typeof entry.offset?.x === 'number' ? entry.offset.x : (parseFloat(String(entry.offset?.x)) || 0),
+        y: typeof entry.offset?.y === 'number' ? entry.offset.y : (parseFloat(String(entry.offset?.y)) || 0),
+        z: typeof entry.offset?.z === 'number' ? entry.offset.z : (parseFloat(String(entry.offset?.z)) || 0),
+      },
+      prefabName: entry.prefabName || '',
+      iconUrl: entry.iconUrl || '',
+    };
+    normalizedEntries.push(normalizedEntry);
+  }
+
   try {
+    const dataToSave = { items: normalizedEntries };
     const response = await fetch(`${API_BASE}/narrenhaeusel/api/save`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify(entries),
+      body: JSON.stringify(dataToSave),
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Save failed');
+      throw new Error(errorData.error || errorData.message || `Save failed (${response.status})`);
     }
+    entries = normalizedEntries;
     saveSuccess.style.display = 'block';
     setTimeout(() => {
       saveSuccess.style.display = 'none';
@@ -317,6 +474,41 @@ function handleIconUpload(file: File): void {
     const dataUrl = e.target?.result as string;
     editIconUrlInput.value = dataUrl;
     updateIconPreview(dataUrl);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function handleMarkerUpload(file: File): Promise<void> {
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target?.result as string;
+    updateMarkerPreview(dataUrl);
+
+    try {
+      const formData = new FormData();
+      formData.append('marker', file);
+      formData.append('filename', file.name);
+
+      const response = await fetch(`${API_BASE}/narrenhaeusel/api/upload-marker`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const baseUrl = IS_DEV ? '' : 'https://00224466.xyz';
+        const fullUrl = `${baseUrl}/narrenhaeusel${result.url}`;
+        editMarkerUrlInput.value = fullUrl;
+        updateMarkerPreview(fullUrl);
+      } else {
+        editMarkerUrlInput.value = dataUrl;
+      }
+    } catch (error) {
+      editMarkerUrlInput.value = dataUrl;
+    }
   };
   reader.readAsDataURL(file);
 }
@@ -379,6 +571,22 @@ iconFileInput.addEventListener('change', () => {
 iconDeleteBtn.addEventListener('click', () => {
   editIconUrlInput.value = '';
   updateIconPreview('');
+});
+
+editMarkerUrlInput.addEventListener('input', () => {
+  updateMarkerPreview(editMarkerUrlInput.value);
+});
+
+markerUploadBtn.addEventListener('click', () => markerFileInput.click());
+markerFileInput.addEventListener('change', () => {
+  if (markerFileInput.files && markerFileInput.files[0]) {
+    handleMarkerUpload(markerFileInput.files[0]);
+  }
+});
+
+markerDeleteBtn.addEventListener('click', () => {
+  editMarkerUrlInput.value = '';
+  updateMarkerPreview('');
 });
 
 deleteCancel.addEventListener('click', closeDeleteModal);

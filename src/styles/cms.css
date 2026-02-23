@@ -88,6 +88,12 @@ h1 {
   gap: 16px;
 }
 
+.form-row-three {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
 label {
   display: block;
   margin-bottom: 6px;
@@ -279,6 +285,39 @@ textarea {
 .entry-card:hover {
   border-color: #ffb200;
   box-shadow: 0 2px 8px rgba(255, 178, 0, 0.15);
+}
+
+/* Add New Entry Card */
+.entry-card.add-new-card {
+  justify-content: center;
+  border-style: dashed;
+  border-color: #ccc;
+  background: #fff;
+  cursor: pointer;
+  min-height: 60px;
+}
+
+.entry-card.add-new-card:hover {
+  border-color: #ffb200;
+  background: #fffdf5;
+}
+
+.add-new-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+}
+
+.add-new-content svg {
+  width: 20px;
+  height: 20px;
+  stroke: #ffb200;
+}
+
+.add-new-content span {
+  font-weight: 500;
+  color: #333;
 }
 
 .entry-info {
@@ -490,6 +529,10 @@ textarea {
 @media (max-width: 600px) {
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .form-row-three {
+    grid-template-columns: 1fr 1fr 1fr;
   }
 
   .entry-info {

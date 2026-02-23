@@ -47,17 +47,17 @@ export function initModelViewer(index: number): ViewerInstance | null {
       pivotY = -0.3;
       lookAtY = 0.5;
     } else if (aspect < 1.5) {
-      camZ = 7.5;
+      camZ = 6;
       camY = 1.6;
       pivotY = -0.3;
       lookAtY = 0.5;
     } else if (aspect < 2) {
-      camZ = 7;
+      camZ = 5.5;
       camY = 1.5;
       pivotY = -0.3;
       lookAtY = 0.4;
     } else {
-      camZ = 6.5;
+      camZ = 5;
       camY = 1.4;
       pivotY = -0.4;
       lookAtY = 0.4;

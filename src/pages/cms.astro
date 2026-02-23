@@ -84,13 +84,33 @@ import '../styles/cms.css';
           <form id="edit-form">
             <div class="form-row">
               <div class="form-group">
-                <label for="edit-id">ID (Marker Name)</label>
-                <input type="text" id="edit-id" name="id" disabled readonly />
-                <span class="form-hint">Cannot be changed</span>
+                <label for="edit-markerName">Marker Name</label>
+                <input type="text" id="edit-markerName" name="markerName" required />
+                <span class="form-hint">Unique identifier for the marker</span>
               </div>
               <div class="form-group">
-                <label for="edit-name">Display Name</label>
+                <label for="edit-name">Content Name</label>
                 <input type="text" id="edit-name" name="name" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="edit-markerWidth">Marker Width</label>
+              <input type="text" id="edit-markerWidth" name="markerWidth" placeholder="0.2" />
+            </div>
+            <div class="form-group">
+              <label>Marker Image</label>
+              <div class="icon-upload-area">
+                <div class="icon-preview" id="marker-preview">
+                  <span class="no-icon">No marker</span>
+                </div>
+                <div class="icon-actions">
+                  <input type="file" id="marker-file" accept="image/*" hidden />
+                  <input type="text" id="edit-markerUrl" name="markerUrl" placeholder="Marker URL or upload" />
+                  <div class="icon-buttons">
+                    <button type="button" class="btn btn-secondary btn-small" id="marker-upload-btn">Upload</button>
+                    <button type="button" class="btn btn-danger btn-small" id="marker-delete-btn">Remove</button>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="form-group">
@@ -109,6 +129,14 @@ import '../styles/cms.css';
               <div class="form-group">
                 <label for="edit-longitude">Longitude</label>
                 <input type="text" id="edit-longitude" name="longitude" placeholder="13.741397 E" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Offset (X, Y, Z)</label>
+              <div class="form-row-three">
+                <input type="text" id="edit-offsetX" name="offsetX" placeholder="0" />
+                <input type="text" id="edit-offsetY" name="offsetY" placeholder="0" />
+                <input type="text" id="edit-offsetZ" name="offsetZ" placeholder="-1" />
               </div>
             </div>
             <div class="form-group">
