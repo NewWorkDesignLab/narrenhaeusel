@@ -38,82 +38,29 @@ export function initModelViewer(index: number): ViewerInstance | null {
     let lookAtY = 0.5;
     let pivotY = -0.3;
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    if (aspect < 0.7) {
-      camZ = 10.5;
-      camY = 1.8;
-      pivotY = -0.3;
-      lookAtY = 0.5;
-    } else if (aspect < 1) {
-      camZ = 9.5;
-      camY = 1.7;
-      pivotY = -0.3;
-      lookAtY = 0.5;
-    } else if (aspect < 1.5) {
-      camZ = 6;
-      camY = 1.6;
-      pivotY = -0.3;
-      lookAtY = 0.5;
-    } else if (aspect < 2) {
-      camZ = 5.5;
-      camY = 1.5;
-      pivotY = -0.3;
-      lookAtY = 0.4;
-    } else {
-      camZ = 5;
-      camY = 1.4;
-      pivotY = -0.4;
-      lookAtY = 0.4;
-=======
     if (isMobile) {
       if (aspect < 0.7) {
-        camZ = 12;
+        camZ = 10;
         camY = 1.8;
         pivotY = -0.3;
         lookAtY = 0.5;
       } else if (aspect < 1) {
-        camZ = 11;
+        camZ = 9;
         camY = 1.7;
         pivotY = -0.3;
         lookAtY = 0.5;
       } else if (aspect < 1.5) {
-        camZ = 9;
+        camZ = 7.5;
         camY = 1.6;
         pivotY = -0.3;
         lookAtY = 0.5;
       } else {
-        camZ = 8;
+        camZ = 7;
         camY = 1.5;
         pivotY = -0.3;
         lookAtY = 0.4;
       }
     } else {
-=======
-    if (isMobile) {
-      if (aspect < 0.7) {
-        camZ = 12;
-        camY = 1.8;
-        pivotY = -0.3;
-        lookAtY = 0.5;
-      } else if (aspect < 1) {
-        camZ = 11;
-        camY = 1.7;
-        pivotY = -0.3;
-        lookAtY = 0.5;
-      } else if (aspect < 1.5) {
-        camZ = 9;
-        camY = 1.6;
-        pivotY = -0.3;
-        lookAtY = 0.5;
-      } else {
-        camZ = 8;
-        camY = 1.5;
-        pivotY = -0.3;
-        lookAtY = 0.4;
-      }
-    } else {
->>>>>>> Stashed changes
       if (aspect < 1.5) {
         camZ = 6.5;
         camY = 1.6;
@@ -130,10 +77,6 @@ export function initModelViewer(index: number): ViewerInstance | null {
         pivotY = -0.4;
         lookAtY = 0.4;
       }
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
     }
 
     return { x: camX, y: camY, z: camZ, lookAtY, pivotY };
