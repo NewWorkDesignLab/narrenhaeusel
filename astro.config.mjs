@@ -1,20 +1,11 @@
 import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
 
 export default defineConfig({
-  site: 'https://newworkdesignlab.github.io',
-  base: '/narrenhaeusel',
+  output: 'server',
+  adapter: vercel({ imageService: false }),
+  site: 'https://narrenhaeusel.newworkdesignlab.org',
   server: {
     host: true
-  },
-  vite: {
-    server: {
-      proxy: {
-        '/proxy': {
-          target: 'https://00224466.xyz',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/proxy/, '')
-        }
-      }
-    }
   }
 });

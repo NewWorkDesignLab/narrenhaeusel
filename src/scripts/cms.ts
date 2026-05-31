@@ -23,7 +23,8 @@ function getEntryName(entry: MarkerEntry): string {
 
 const IS_DEV = import.meta.env.DEV;
 const DEV_SKIP_AUTH = false;
-const API_BASE = IS_DEV ? '/proxy' : 'https://00224466.xyz';
+// Alle Requests gehen an die eigenen /api/* Serverless-Routes (nie direkt zur externen API)
+const API_BASE = '';
 
 const loginContainer = document.getElementById('login-container') as HTMLElement;
 const editorContainer = document.getElementById('editor-container') as HTMLElement;
@@ -82,7 +83,7 @@ async function verifyPassword(password: string): Promise<boolean> {
     return password.length > 0;
   }
   try {
-    const response = await fetch(`${API_BASE}/narrenhaeusel/api/cms-login`, {
+    const response = await fetch(`${API_BASE}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
@@ -106,9 +107,7 @@ async function loadData(): Promise<void> {
   loading.classList.remove('hidden');
   editorContent.classList.add('hidden');
   try {
-    const response = await fetch(`${API_BASE}/narrenhaeusel/api/get-data`, {
-      headers: { 'X-API-Key': apiKey },
-    });
+    const response = await fetch(`${API_BASE}/api/get-data`);
     if (!response.ok) {
       throw new Error(`Failed to load data: ${response.status}`);
     }
@@ -233,10 +232,7 @@ function updateMarkerPreview(url: string): void {
 
     if (!url.startsWith('data:')) {
       if (url.startsWith('/markers/')) {
-        resolvedUrl = `https://00224466.xyz/narrenhaeusel${url}`;
-      }
-      else if (url.startsWith('/narrenhaeusel/markers/')) {
-        resolvedUrl = `https://00224466.xyz${url}`;
+        resolvedUrl = `https://api.nwdl.org/nh${url}`;
       }
     }
 
@@ -340,9 +336,8 @@ async function syncFromServer(): Promise<void> {
   saveError.style.display = 'none';
   saveSuccess.style.display = 'none';
   try {
-    const response = await fetch(`${API_BASE}/narrenhaeusel/api/get-data`, {
+    const response = await fetch(`${API_BASE}/api/get-data`, {
       cache: 'no-store',
-      headers: { 'X-API-Key': apiKey },
     });
     if (!response.ok) throw new Error('Failed to sync data');
     const data: DataFormat = await response.json();
@@ -405,11 +400,10 @@ async function saveData(): Promise<void> {
 
   try {
     const dataToSave = { items: normalizedEntries };
-    const response = await fetch(`${API_BASE}/narrenhaeusel/api/save`, {
+    const response = await fetch(`${API_BASE}/api/save`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(dataToSave),
     });
@@ -440,18 +434,14 @@ async function handleMarkerUpload(file: File): Promise<void> {
       formData.append('marker', file);
       formData.append('filename', file.name);
 
-      const response = await fetch(`${API_BASE}/narrenhaeusel/api/upload-marker`, {
+      const response = await fetch(`${API_BASE}/api/upload-marker`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-        },
         body: formData,
       });
 
       if (response.ok) {
         const result = await response.json();
-        const baseUrl = IS_DEV ? '' : 'https://00224466.xyz';
-        const fullUrl = `${baseUrl}/narrenhaeusel${result.url}`;
+        const fullUrl = `https://api.nwdl.org/nh${result.url}`;
         editMarkerUrlInput.value = fullUrl;
         updateMarkerPreview(fullUrl);
       } else {

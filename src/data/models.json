@@ -2,7 +2,7 @@
   {
     "id": "narrenhaeusel",
     "name": "Narrenhäusel",
-    "modelPath": "/narrenhaeusel/models/model_nh.glb",
+    "modelPath": "/models/model_nh.glb",
     "coordinates": {
       "latitude": "51.056959686906928 N",
       "longitude": "13.741397319749463 E"
@@ -12,7 +12,7 @@
   {
     "id": "example",
     "name": "Beispiel Gebäude",
-    "modelPath": "/narrenhaeusel/models/model_fk.glb",
+    "modelPath": "/models/model_fk.glb",
     "coordinates": {
       "latitude": "51.05192785024505 N",
       "longitude": "13.741580357371337 E"
@@ -20,4 +20,3 @@
     "description": "Ein weiteres historisches Gebäude in Dresden. Z.B. könnte man die Frauenkirche nehmen! Das Wartzeichen Dresdens, welche nach der Zerstörung im zweiten Weltkrieg im Jahre 2005 wiedereröffnet wurde."
   }
 ]
-
