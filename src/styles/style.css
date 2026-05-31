@@ -174,11 +174,22 @@ html, body {
     position: absolute;
     left: 0;
     top: 0;
-    width: 0%;
+    width: 30%;
     height: 100%;
     background: #FFB200;
     border-radius: 3px;
     transition: width 0.15s ease-out;
+    animation: loading-sweep 1.1s ease-in-out infinite;
+}
+
+.loading-bar-fill.determinate {
+    animation: none;
+}
+
+@keyframes loading-sweep {
+    0%   { left: -35%; width: 30%; }
+    60%  { left: 100%; width: 30%; }
+    100% { left: 100%; width: 30%; }
 }
 
 .loading-progress {

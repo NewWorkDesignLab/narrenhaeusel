@@ -5,7 +5,5 @@ export default defineConfig({
   output: 'server',
   adapter: vercel({ imageService: false }),
   site: 'https://narrenhaeusel.newworkdesignlab.org',
-  server: {
-    host: true
-  }
+  server: { host: true },
 });

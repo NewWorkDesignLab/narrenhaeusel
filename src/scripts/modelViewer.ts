@@ -220,11 +220,13 @@ export function initModelViewer(index: number): ViewerInstance | null {
         const displayPercent = Math.min(100, Math.round(easedPercent * 100));
         const progressEl = loadingOverlay.querySelector('.loading-progress');
         const fillEl = loadingOverlay.querySelector('.loading-bar-fill') as HTMLElement;
+        if (fillEl) {
+          fillEl.classList.add('determinate');
+          fillEl.style.left = '0';
+          fillEl.style.width = `${displayPercent}%`;
+        }
         if (progressEl) {
           progressEl.textContent = `${displayPercent}%`;
-        }
-        if (fillEl) {
-          fillEl.style.width = `${displayPercent}%`;
         }
       }
     },

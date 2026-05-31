@@ -232,13 +232,17 @@ function updateMarkerPreview(url: string): void {
 
     if (!url.startsWith('data:')) {
       if (url.startsWith('/markers/')) {
-        resolvedUrl = `https://api.nwdl.org/nh${url}`;
+        const file = url.replace('/markers/', '');
+        resolvedUrl = `/api/marker?file=${encodeURIComponent(file)}`;
+      } else if (url.startsWith('http')) {
+        const match = url.match(/\/markers\/(.+)$/);
+        if (match) resolvedUrl = `/api/marker?file=${encodeURIComponent(match[1])}`;
       }
     }
 
     const img = document.createElement('img');
     img.alt = 'Marker preview';
-    img.crossOrigin = 'anonymous';
+    markerPreview.innerHTML = '<span class="no-icon">Loading marker...</span>';
     img.onload = () => {
       markerPreview.innerHTML = '';
       markerPreview.appendChild(img);
@@ -441,7 +445,7 @@ async function handleMarkerUpload(file: File): Promise<void> {
 
       if (response.ok) {
         const result = await response.json();
-        const fullUrl = `https://api.nwdl.org/nh${result.url}`;
+        const fullUrl = result.url;
         editMarkerUrlInput.value = fullUrl;
         updateMarkerPreview(fullUrl);
       } else {

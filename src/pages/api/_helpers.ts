@@ -15,10 +15,11 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
-function buildResponse(r: globalThis.Response, body: string): Response {
-  return new Response(body, {
+function buildResponse(r: globalThis.Response): Response {
+  const contentType = r.headers.get('Content-Type') ?? 'application/octet-stream';
+  return new Response(r.body, {
     status: r.status,
-    headers: { 'Content-Type': r.headers.get('Content-Type') ?? 'application/json' },
+    headers: { 'Content-Type': contentType },
   });
 }
 
@@ -36,7 +37,7 @@ export async function proxy(
   };
 
   const r = await fetch(getApiUrl() + upstreamPath, { ...init, headers });
-  return buildResponse(r, await r.text());
+  return buildResponse(r);
 }
 
 export async function proxyNoAuth(
@@ -44,5 +45,5 @@ export async function proxyNoAuth(
   init: RequestInit = {}
 ): Promise<Response> {
   const r = await fetch(getApiUrl() + upstreamPath, init);
-  return buildResponse(r, await r.text());
+  return buildResponse(r);
 }

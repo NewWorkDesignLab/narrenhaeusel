@@ -2,20 +2,21 @@ import yaml from 'js-yaml';
 import fs from 'node:fs';
 import path from 'node:path';
 
-interface EndpointConfig {
-  api: {
-    base_url: string;
-    prefix: string;
-  };
+export interface EndpointsConfig {
+  api: { base_url: string; prefix: string };
 }
 
-let cachedUrl: string | null = null;
+let cached: EndpointsConfig | null = null;
+
+function load(): EndpointsConfig {
+  if (cached) return cached;
+  const p = path.resolve(process.cwd(), 'endpoints.yaml');
+  cached = yaml.load(fs.readFileSync(p, 'utf8')) as EndpointsConfig;
+  return cached;
+}
 
 export function getApiUrl(): string {
-  if (cachedUrl) return cachedUrl;
-  const filePath = path.resolve(process.cwd(), 'endpoints.yaml');
-  const config = yaml.load(fs.readFileSync(filePath, 'utf8')) as EndpointConfig;
-  cachedUrl = `${config.api.base_url}${config.api.prefix}`;
-  return cachedUrl;
+  const { api } = load();
+  return `${api.base_url}${api.prefix}`;
 }
 
